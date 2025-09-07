@@ -1,0 +1,3 @@
+- 10:10–10:30 entry, 15:20–15:35 exit
+- inverse VIX scaling
+- conservative deltas in high vol

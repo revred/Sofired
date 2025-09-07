@@ -1,0 +1,4 @@
+Component,PnL_USD,Notes
+CoveredCallLadder,12500,delta 0.10–0.15; qty 5
+PutSpreads,3500,short Δ 0.15–0.20
+Hedges,-300,VIX tail hedge drag

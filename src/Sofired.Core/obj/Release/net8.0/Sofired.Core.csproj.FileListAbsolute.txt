@@ -1,0 +1,11 @@
+C:\code\Sofired\src\Sofired.Core\bin\Release\net8.0\Sofired.Core.deps.json
+C:\code\Sofired\src\Sofired.Core\bin\Release\net8.0\Sofired.Core.dll
+C:\code\Sofired\src\Sofired.Core\bin\Release\net8.0\Sofired.Core.pdb
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.AssemblyInfoInputs.cache
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.AssemblyInfo.cs
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.csproj.CoreCompileInputs.cache
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.dll
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\refint\Sofired.Core.dll
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.pdb
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\ref\Sofired.Core.dll
