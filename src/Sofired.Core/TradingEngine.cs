@@ -16,11 +16,21 @@ public class TradingEngine
     // Capital Management
     private decimal _currentCapital;
     private int _tradeSequence = 1;
+    
+    // Reality Assessment Integration
+    private readonly TradeValidator? _validator;
+    private readonly RealityAuditReport _auditReport = new();
 
-    public TradingEngine(StrategyConfig config)
+    public TradingEngine(StrategyConfig config, TradeValidator? validator = null)
     {
         _config = config;
         _currentCapital = config.InitialCapital; // Start with initial capital
+        _validator = validator;
+    }
+    
+    public RealityAuditReport.RealityAuditSummary? GetRealityAuditSummary()
+    {
+        return _auditReport?.GenerateSummary();
     }
 
     public TradingSession ProcessTradingDay(DateTime date, DailyBar sofiBar, decimal vixLevel)

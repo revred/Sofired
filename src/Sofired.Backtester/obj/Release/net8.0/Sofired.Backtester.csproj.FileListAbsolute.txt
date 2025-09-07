@@ -16,3 +16,4 @@ C:\code\Sofired\src\Sofired.Backtester\obj\Release\net8.0\refint\Sofired.Backtes
 C:\code\Sofired\src\Sofired.Backtester\obj\Release\net8.0\Sofired.Backtester.pdb
 C:\code\Sofired\src\Sofired.Backtester\obj\Release\net8.0\Sofired.Backtester.genruntimeconfig.cache
 C:\code\Sofired\src\Sofired.Backtester\obj\Release\net8.0\ref\Sofired.Backtester.dll
+C:\code\Sofired\src\Sofired.Backtester\obj\Release\net8.0\Sofired.Backtester.sourcelink.json

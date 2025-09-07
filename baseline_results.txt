@@ -1,0 +1,1176 @@
+Attempting to fetch SOFI data from ThetaData Terminal...
+ThetaData request: http://localhost:25510/hist/stock/ohlc?root=SOFI&start_date=20240101&end_date=20250831&ivl=86400000&rth=true
+ThetaData response received (27617 chars)
+Raw response sample: {
+	"header": {
+		"id": 23,
+		"latency_ms": 1237,
+		"error_type": "null",
+		"error_msg": "null",
+		"next_page": "null",
+		"format": ["ms_of_day","open","high","low","close","volume","count","date"]
+ 	},
+	"response": [
+		[34200000,9.9100,10.0700,9.6500,9.7100,1394797,3874,20240102],
+		[34200000,9.3300,9.6100,8.6500,8.9100,2570163,8772,20240103],
+		[34200000,8.4000,8.5300,8.3100,8.3500,996647,3177,20240104],
+		[34200000,8.4200,8.5000,8.2300,8.2700,844377,3278,20240105],
+		[34200000,8.3000,8.3100,8....
+Parsing ThetaData array format with 417 data points...
+Sample data point 1: 2024-01-02 O:9.9100 H:10.0700 L:9.6500 C:9.7100 V:1394797
+Sample data point 2: 2024-01-03 O:9.3300 H:9.6100 L:8.6500 C:8.9100 V:2570163
+Sample data point 3: 2024-01-04 O:8.4000 H:8.5300 L:8.3100 C:8.3500 V:996647
+✅ Successfully parsed 417 real market bars for SOFI
+📊 Real SOFI data: 2024-01-02 ($9.71) → 2025-08-29 ($26.22)
+📈 Price change: $16.51 (170.0%)
+✅ Successfully loaded 417 real market bars for SOFI
+   Date range: 2024-01-02 to 2025-08-29
+   Price range: $6.00 - $26.22
+Running comprehensive dual-strategy backtest from 2024-01-01 to 2025-08-31
+Total trading days: 417
+Fetching real VIX data for accurate volatility analysis...
+Fetching VIX data: http://localhost:25510/hist/stock/ohlc?root=VIX&start_date=20240101&end_date=20250831&ivl=86400000
+ThetaData VIX API error: NO_DATA
+⚠️  Using synthetic VIX calculation as fallback
+
+Executing trades...
+COMPOUNDING: Capital grew from £10000 to £10038 (+£38)
+COMPOUNDING: Capital grew from £10038 to £10038 (+£0)
+2024-01-02: Opened 2, Closed 2, Weekly: £38, Monthly: £38
+COMPOUNDING: Capital grew from £10038 to £10075 (+£38)
+COMPOUNDING: Capital grew from £10075 to £10076 (+£0)
+2024-01-03: Opened 2, Closed 2, Weekly: £76, Monthly: £76
+COMPOUNDING: Capital grew from £10076 to £10113 (+£38)
+COMPOUNDING: Capital grew from £10113 to £10114 (+£0)
+2024-01-04: Opened 2, Closed 2, Weekly: £114, Monthly: £114
+COMPOUNDING: Capital grew from £10114 to £10151 (+£38)
+COMPOUNDING: Capital grew from £10151 to £10151 (+£0)
+2024-01-05: Opened 2, Closed 2, Weekly: £151, Monthly: £151
+COMPOUNDING: Capital grew from £10151 to £10189 (+£38)
+COMPOUNDING: Capital grew from £10189 to £10189 (+£0)
+2024-01-08: Opened 2, Closed 2, Weekly: £38, Monthly: £189
+COMPOUNDING: Capital grew from £10189 to £10227 (+£38)
+COMPOUNDING: Capital grew from £10227 to £10227 (+£0)
+2024-01-09: Opened 2, Closed 2, Weekly: £76, Monthly: £227
+COMPOUNDING: Capital grew from £10227 to £10265 (+£38)
+COMPOUNDING: Capital grew from £10265 to £10265 (+£0)
+2024-01-10: Opened 2, Closed 2, Weekly: £114, Monthly: £265
+COMPOUNDING: Capital grew from £10265 to £10302 (+£38)
+COMPOUNDING: Capital grew from £10302 to £10303 (+£0)
+2024-01-11: Opened 2, Closed 2, Weekly: £151, Monthly: £303
+COMPOUNDING: Capital grew from £10303 to £10340 (+£38)
+COMPOUNDING: Capital grew from £10340 to £10341 (+£0)
+2024-01-12: Opened 2, Closed 2, Weekly: £189, Monthly: £341
+COMPOUNDING: Capital grew from £10341 to £10378 (+£38)
+COMPOUNDING: Capital grew from £10378 to £10379 (+£0)
+2024-01-16: Opened 2, Closed 2, Weekly: £227, Monthly: £379
+COMPOUNDING: Capital grew from £10379 to £10416 (+£38)
+COMPOUNDING: Capital grew from £10416 to £10416 (+£0)
+2024-01-17: Opened 2, Closed 2, Weekly: £265, Monthly: £416
+COMPOUNDING: Capital grew from £10416 to £10454 (+£38)
+COMPOUNDING: Capital grew from £10454 to £10454 (+£0)
+2024-01-18: Opened 2, Closed 2, Weekly: £303, Monthly: £454
+COMPOUNDING: Capital grew from £10454 to £10492 (+£38)
+COMPOUNDING: Capital grew from £10492 to £10492 (+£0)
+2024-01-19: Opened 2, Closed 2, Weekly: £341, Monthly: £492
+COMPOUNDING: Capital grew from £10492 to £10530 (+£38)
+COMPOUNDING: Capital grew from £10530 to £10530 (+£0)
+2024-01-22: Opened 2, Closed 2, Weekly: £38, Monthly: £530
+COMPOUNDING: Capital grew from £10530 to £10567 (+£38)
+COMPOUNDING: Capital grew from £10567 to £10568 (+£0)
+2024-01-23: Opened 2, Closed 2, Weekly: £76, Monthly: £568
+COMPOUNDING: Capital grew from £10568 to £10605 (+£38)
+COMPOUNDING: Capital grew from £10605 to £10606 (+£0)
+2024-01-24: Opened 2, Closed 2, Weekly: £114, Monthly: £606
+COMPOUNDING: Capital grew from £10606 to £10643 (+£38)
+COMPOUNDING: Capital grew from £10643 to £10643 (+£0)
+2024-01-25: Opened 2, Closed 2, Weekly: £151, Monthly: £643
+COMPOUNDING: Capital grew from £10643 to £10681 (+£38)
+COMPOUNDING: Capital grew from £10681 to £10681 (+£0)
+2024-01-26: Opened 2, Closed 2, Weekly: £189, Monthly: £681
+COMPOUNDING: Capital grew from £10681 to £10719 (+£38)
+COMPOUNDING: Capital grew from £10719 to £10719 (+£0)
+2024-01-29: Opened 2, Closed 2, Weekly: £38, Monthly: £719
+COMPOUNDING: Capital grew from £10719 to £10757 (+£38)
+COMPOUNDING: Capital grew from £10757 to £10757 (+£0)
+2024-01-30: Opened 2, Closed 2, Weekly: £76, Monthly: £757
+COMPOUNDING: Capital grew from £10757 to £10825 (+£68)
+COMPOUNDING: Capital grew from £10825 to £10825 (+£1)
+2024-01-31: Opened 2, Closed 2, Weekly: £144, Monthly: £825
+COMPOUNDING: Capital grew from £10825 to £10893 (+£68)
+COMPOUNDING: Capital grew from £10893 to £10893 (+£1)
+2024-02-01: Opened 2, Closed 2, Weekly: £212, Monthly: £68
+COMPOUNDING: Capital grew from £10893 to £10961 (+£68)
+COMPOUNDING: Capital grew from £10961 to £10961 (+£1)
+2024-02-02: Opened 2, Closed 2, Weekly: £280, Monthly: £136
+COMPOUNDING: Capital grew from £10961 to £11029 (+£68)
+COMPOUNDING: Capital grew from £11029 to £11029 (+£1)
+2024-02-05: Opened 2, Closed 2, Weekly: £68, Monthly: £204
+COMPOUNDING: Capital grew from £11029 to £11097 (+£68)
+COMPOUNDING: Capital grew from £11097 to £11097 (+£1)
+2024-02-06: Opened 2, Closed 2, Weekly: £136, Monthly: £272
+COMPOUNDING: Capital grew from £11097 to £11165 (+£68)
+COMPOUNDING: Capital grew from £11165 to £11165 (+£1)
+2024-02-07: Opened 2, Closed 2, Weekly: £204, Monthly: £340
+COMPOUNDING: Capital grew from £11165 to £11233 (+£68)
+COMPOUNDING: Capital grew from £11233 to £11233 (+£1)
+2024-02-08: Opened 2, Closed 2, Weekly: £272, Monthly: £408
+COMPOUNDING: Capital grew from £11233 to £11301 (+£68)
+COMPOUNDING: Capital grew from £11301 to £11301 (+£1)
+2024-02-09: Opened 2, Closed 2, Weekly: £340, Monthly: £476
+COMPOUNDING: Capital grew from £11301 to £11369 (+£68)
+COMPOUNDING: Capital grew from £11369 to £11370 (+£1)
+2024-02-12: Opened 2, Closed 2, Weekly: £68, Monthly: £544
+COMPOUNDING: Capital grew from £11370 to £11437 (+£68)
+COMPOUNDING: Capital grew from £11437 to £11438 (+£1)
+2024-02-13: Opened 2, Closed 2, Weekly: £136, Monthly: £613
+COMPOUNDING: Capital grew from £11438 to £11505 (+£68)
+COMPOUNDING: Capital grew from £11505 to £11506 (+£1)
+2024-02-20: Opened 2, Closed 2, Weekly: £204, Monthly: £681
+COMPOUNDING: Capital grew from £11506 to £11573 (+£68)
+COMPOUNDING: Capital grew from £11573 to £11574 (+£1)
+2024-02-21: Opened 2, Closed 2, Weekly: £272, Monthly: £749
+COMPOUNDING: Capital grew from £11574 to £11641 (+£68)
+COMPOUNDING: Capital grew from £11641 to £11642 (+£1)
+2024-02-22: Opened 2, Closed 2, Weekly: £340, Monthly: £817
+COMPOUNDING: Capital grew from £11642 to £11709 (+£68)
+COMPOUNDING: Capital grew from £11709 to £11710 (+£1)
+2024-02-23: Opened 2, Closed 2, Weekly: £408, Monthly: £885
+COMPOUNDING: Capital grew from £11710 to £11777 (+£68)
+COMPOUNDING: Capital grew from £11777 to £11778 (+£1)
+2024-02-26: Opened 2, Closed 2, Weekly: £68, Monthly: £953
+COMPOUNDING: Capital grew from £11778 to £11845 (+£68)
+COMPOUNDING: Capital grew from £11845 to £11846 (+£1)
+2024-02-27: Opened 2, Closed 2, Weekly: £136, Monthly: £1021
+COMPOUNDING: Capital grew from £11846 to £11913 (+£68)
+COMPOUNDING: Capital grew from £11913 to £11914 (+£1)
+2024-02-28: Opened 2, Closed 2, Weekly: £204, Monthly: £1089
+COMPOUNDING: Capital grew from £11914 to £11982 (+£68)
+COMPOUNDING: Capital grew from £11982 to £11982 (+£1)
+2024-02-29: Opened 2, Closed 2, Weekly: £272, Monthly: £1157
+COMPOUNDING: Capital grew from £11982 to £12050 (+£68)
+COMPOUNDING: Capital grew from £12050 to £12050 (+£1)
+2024-03-01: Opened 2, Closed 2, Weekly: £340, Monthly: £68
+COMPOUNDING: Capital grew from £12050 to £12118 (+£68)
+COMPOUNDING: Capital grew from £12118 to £12118 (+£1)
+2024-03-04: Opened 2, Closed 2, Weekly: £68, Monthly: £136
+COMPOUNDING: Capital grew from £12118 to £12186 (+£68)
+COMPOUNDING: Capital grew from £12186 to £12186 (+£1)
+2024-03-05: Opened 2, Closed 2, Weekly: £136, Monthly: £204
+COMPOUNDING: Capital grew from £12186 to £12254 (+£68)
+COMPOUNDING: Capital grew from £12254 to £12254 (+£1)
+2024-03-06: Opened 2, Closed 2, Weekly: £204, Monthly: £272
+COMPOUNDING: Capital grew from £12254 to £12322 (+£68)
+COMPOUNDING: Capital grew from £12322 to £12322 (+£1)
+2024-03-07: Opened 2, Closed 2, Weekly: £272, Monthly: £340
+COMPOUNDING: Capital grew from £12322 to £12390 (+£68)
+COMPOUNDING: Capital grew from £12390 to £12390 (+£1)
+2024-03-08: Opened 2, Closed 2, Weekly: £340, Monthly: £408
+COMPOUNDING: Capital grew from £12390 to £12458 (+£68)
+COMPOUNDING: Capital grew from £12458 to £12459 (+£1)
+2024-03-11: Opened 2, Closed 2, Weekly: £68, Monthly: £476
+COMPOUNDING: Capital grew from £12459 to £12526 (+£68)
+COMPOUNDING: Capital grew from £12526 to £12527 (+£1)
+2024-03-12: Opened 2, Closed 2, Weekly: £136, Monthly: £544
+COMPOUNDING: Capital grew from £12527 to £12594 (+£68)
+COMPOUNDING: Capital grew from £12594 to £12595 (+£1)
+2024-03-13: Opened 2, Closed 2, Weekly: £204, Monthly: £613
+COMPOUNDING: Capital grew from £12595 to £12662 (+£68)
+COMPOUNDING: Capital grew from £12662 to £12663 (+£1)
+2024-03-14: Opened 2, Closed 2, Weekly: £272, Monthly: £681
+COMPOUNDING: Capital grew from £12663 to £12730 (+£68)
+COMPOUNDING: Capital grew from £12730 to £12731 (+£1)
+2024-03-15: Opened 2, Closed 2, Weekly: £340, Monthly: £749
+COMPOUNDING: Capital grew from £12731 to £12798 (+£68)
+COMPOUNDING: Capital grew from £12798 to £12799 (+£1)
+2024-03-18: Opened 2, Closed 2, Weekly: £68, Monthly: £817
+COMPOUNDING: Capital grew from £12799 to £12866 (+£68)
+COMPOUNDING: Capital grew from £12866 to £12867 (+£1)
+2024-03-19: Opened 2, Closed 2, Weekly: £136, Monthly: £885
+COMPOUNDING: Capital grew from £12867 to £12934 (+£68)
+COMPOUNDING: Capital grew from £12934 to £12935 (+£1)
+2024-03-20: Opened 2, Closed 2, Weekly: £204, Monthly: £953
+COMPOUNDING: Capital grew from £12935 to £13002 (+£68)
+COMPOUNDING: Capital grew from £13002 to £13003 (+£1)
+2024-03-21: Opened 2, Closed 2, Weekly: £272, Monthly: £1021
+COMPOUNDING: Capital grew from £13003 to £13070 (+£68)
+COMPOUNDING: Capital grew from £13070 to £13071 (+£1)
+2024-03-22: Opened 2, Closed 2, Weekly: £340, Monthly: £1089
+COMPOUNDING: Capital grew from £13071 to £13139 (+£68)
+COMPOUNDING: Capital grew from £13139 to £13139 (+£1)
+2024-03-25: Opened 2, Closed 2, Weekly: £68, Monthly: £1157
+COMPOUNDING: Capital grew from £13139 to £13207 (+£68)
+COMPOUNDING: Capital grew from £13207 to £13207 (+£1)
+2024-03-26: Opened 2, Closed 2, Weekly: £136, Monthly: £1225
+COMPOUNDING: Capital grew from £13207 to £13275 (+£68)
+COMPOUNDING: Capital grew from £13275 to £13275 (+£1)
+2024-03-27: Opened 2, Closed 2, Weekly: £204, Monthly: £1293
+COMPOUNDING: Capital grew from £13275 to £13343 (+£68)
+COMPOUNDING: Capital grew from £13343 to £13343 (+£1)
+2024-03-28: Opened 2, Closed 2, Weekly: £272, Monthly: £1361
+COMPOUNDING: Capital grew from £13343 to £13411 (+£68)
+COMPOUNDING: Capital grew from £13411 to £13411 (+£1)
+2024-04-01: Opened 2, Closed 2, Weekly: £68, Monthly: £68
+COMPOUNDING: Capital grew from £13411 to £13479 (+£68)
+COMPOUNDING: Capital grew from £13479 to £13479 (+£1)
+2024-04-02: Opened 2, Closed 2, Weekly: £136, Monthly: £136
+COMPOUNDING: Capital grew from £13479 to £13547 (+£68)
+COMPOUNDING: Capital grew from £13547 to £13547 (+£1)
+2024-04-03: Opened 2, Closed 2, Weekly: £204, Monthly: £204
+COMPOUNDING: Capital grew from £13547 to £13615 (+£68)
+COMPOUNDING: Capital grew from £13615 to £13616 (+£1)
+2024-04-04: Opened 2, Closed 2, Weekly: £272, Monthly: £272
+COMPOUNDING: Capital grew from £13616 to £13683 (+£68)
+COMPOUNDING: Capital grew from £13683 to £13684 (+£1)
+2024-04-05: Opened 2, Closed 2, Weekly: £340, Monthly: £340
+COMPOUNDING: Capital grew from £13684 to £13751 (+£68)
+COMPOUNDING: Capital grew from £13751 to £13752 (+£1)
+2024-04-08: Opened 2, Closed 2, Weekly: £68, Monthly: £408
+COMPOUNDING: Capital grew from £13752 to £13819 (+£68)
+COMPOUNDING: Capital grew from £13819 to £13820 (+£1)
+2024-04-09: Opened 2, Closed 2, Weekly: £136, Monthly: £476
+COMPOUNDING: Capital grew from £13820 to £13887 (+£68)
+COMPOUNDING: Capital grew from £13887 to £13888 (+£1)
+2024-04-10: Opened 2, Closed 2, Weekly: £204, Monthly: £544
+COMPOUNDING: Capital grew from £13888 to £13955 (+£68)
+COMPOUNDING: Capital grew from £13955 to £13956 (+£1)
+2024-04-11: Opened 2, Closed 2, Weekly: £272, Monthly: £613
+COMPOUNDING: Capital grew from £13956 to £14023 (+£68)
+COMPOUNDING: Capital grew from £14023 to £14024 (+£1)
+2024-04-12: Opened 2, Closed 2, Weekly: £340, Monthly: £681
+COMPOUNDING: Capital grew from £14024 to £14091 (+£68)
+COMPOUNDING: Capital grew from £14091 to £14092 (+£1)
+2024-04-15: Opened 2, Closed 2, Weekly: £68, Monthly: £749
+COMPOUNDING: Capital grew from £14092 to £14159 (+£68)
+COMPOUNDING: Capital grew from £14159 to £14160 (+£1)
+2024-04-16: Opened 2, Closed 2, Weekly: £136, Monthly: £817
+COMPOUNDING: Capital grew from £14160 to £14228 (+£68)
+COMPOUNDING: Capital grew from £14228 to £14228 (+£1)
+2024-04-22: Opened 2, Closed 2, Weekly: £68, Monthly: £885
+COMPOUNDING: Capital grew from £14228 to £14296 (+£68)
+COMPOUNDING: Capital grew from £14296 to £14296 (+£1)
+2024-04-23: Opened 2, Closed 2, Weekly: £136, Monthly: £953
+COMPOUNDING: Capital grew from £14296 to £14364 (+£68)
+COMPOUNDING: Capital grew from £14364 to £14364 (+£1)
+2024-04-24: Opened 2, Closed 2, Weekly: £204, Monthly: £1021
+COMPOUNDING: Capital grew from £14364 to £14432 (+£68)
+COMPOUNDING: Capital grew from £14432 to £14432 (+£1)
+2024-04-25: Opened 2, Closed 2, Weekly: £272, Monthly: £1089
+COMPOUNDING: Capital grew from £14432 to £14500 (+£68)
+COMPOUNDING: Capital grew from £14500 to £14500 (+£1)
+2024-04-26: Opened 2, Closed 2, Weekly: £340, Monthly: £1157
+COMPOUNDING: Capital grew from £14500 to £14568 (+£68)
+COMPOUNDING: Capital grew from £14568 to £14568 (+£1)
+2024-04-29: Opened 2, Closed 2, Weekly: £68, Monthly: £1225
+COMPOUNDING: Capital grew from £14568 to £14636 (+£68)
+COMPOUNDING: Capital grew from £14636 to £14636 (+£1)
+2024-04-30: Opened 2, Closed 2, Weekly: £136, Monthly: £1293
+COMPOUNDING: Capital grew from £14636 to £14704 (+£68)
+COMPOUNDING: Capital grew from £14704 to £14704 (+£1)
+2024-05-01: Opened 2, Closed 2, Weekly: £204, Monthly: £68
+COMPOUNDING: Capital grew from £14704 to £14772 (+£68)
+COMPOUNDING: Capital grew from £14772 to £14773 (+£1)
+2024-05-02: Opened 2, Closed 2, Weekly: £272, Monthly: £136
+COMPOUNDING: Capital grew from £14773 to £14840 (+£68)
+COMPOUNDING: Capital grew from £14840 to £14841 (+£1)
+2024-05-03: Opened 2, Closed 2, Weekly: £340, Monthly: £204
+COMPOUNDING: Capital grew from £14841 to £14908 (+£68)
+COMPOUNDING: Capital grew from £14908 to £14909 (+£1)
+2024-05-06: Opened 2, Closed 2, Weekly: £68, Monthly: £272
+COMPOUNDING: Capital grew from £14909 to £14976 (+£68)
+COMPOUNDING: Capital grew from £14976 to £14977 (+£1)
+2024-05-07: Opened 2, Closed 2, Weekly: £136, Monthly: £340
+COMPOUNDING: Capital grew from £14977 to £15044 (+£68)
+COMPOUNDING: Capital grew from £15044 to £15045 (+£1)
+2024-05-08: Opened 2, Closed 2, Weekly: £204, Monthly: £408
+COMPOUNDING: Capital grew from £15045 to £15112 (+£68)
+COMPOUNDING: Capital grew from £15112 to £15113 (+£1)
+2024-05-09: Opened 2, Closed 2, Weekly: £272, Monthly: £476
+COMPOUNDING: Capital grew from £15113 to £15180 (+£68)
+COMPOUNDING: Capital grew from £15180 to £15181 (+£1)
+2024-05-10: Opened 2, Closed 2, Weekly: £340, Monthly: £544
+COMPOUNDING: Capital grew from £15181 to £15248 (+£68)
+COMPOUNDING: Capital grew from £15248 to £15249 (+£1)
+2024-05-13: Opened 2, Closed 2, Weekly: £68, Monthly: £613
+COMPOUNDING: Capital grew from £15249 to £15316 (+£68)
+COMPOUNDING: Capital grew from £15316 to £15317 (+£1)
+2024-05-14: Opened 2, Closed 2, Weekly: £136, Monthly: £681
+COMPOUNDING: Capital grew from £15317 to £15385 (+£68)
+COMPOUNDING: Capital grew from £15385 to £15385 (+£1)
+2024-05-15: Opened 2, Closed 2, Weekly: £204, Monthly: £749
+COMPOUNDING: Capital grew from £15385 to £15453 (+£68)
+COMPOUNDING: Capital grew from £15453 to £15453 (+£1)
+2024-05-16: Opened 2, Closed 2, Weekly: £272, Monthly: £817
+COMPOUNDING: Capital grew from £15453 to £15521 (+£68)
+COMPOUNDING: Capital grew from £15521 to £15521 (+£1)
+2024-05-20: Opened 2, Closed 2, Weekly: £68, Monthly: £885
+COMPOUNDING: Capital grew from £15521 to £15589 (+£68)
+COMPOUNDING: Capital grew from £15589 to £15589 (+£1)
+2024-05-21: Opened 2, Closed 2, Weekly: £136, Monthly: £953
+COMPOUNDING: Capital grew from £15589 to £15657 (+£68)
+COMPOUNDING: Capital grew from £15657 to £15657 (+£1)
+2024-05-22: Opened 2, Closed 2, Weekly: £204, Monthly: £1021
+COMPOUNDING: Capital grew from £15657 to £15725 (+£68)
+COMPOUNDING: Capital grew from £15725 to £15725 (+£1)
+2024-05-23: Opened 2, Closed 2, Weekly: £272, Monthly: £1089
+COMPOUNDING: Capital grew from £15725 to £15793 (+£68)
+COMPOUNDING: Capital grew from £15793 to £15793 (+£1)
+2024-05-24: Opened 2, Closed 2, Weekly: £340, Monthly: £1157
+COMPOUNDING: Capital grew from £15793 to £15861 (+£68)
+COMPOUNDING: Capital grew from £15861 to £15862 (+£1)
+2024-05-28: Opened 2, Closed 2, Weekly: £408, Monthly: £1225
+COMPOUNDING: Capital grew from £15862 to £15929 (+£68)
+COMPOUNDING: Capital grew from £15929 to £15930 (+£1)
+2024-05-29: Opened 2, Closed 2, Weekly: £476, Monthly: £1293
+COMPOUNDING: Capital grew from £15930 to £15997 (+£68)
+COMPOUNDING: Capital grew from £15997 to £15998 (+£1)
+2024-05-30: Opened 2, Closed 2, Weekly: £544, Monthly: £1361
+COMPOUNDING: Capital grew from £15998 to £16065 (+£68)
+COMPOUNDING: Capital grew from £16065 to £16066 (+£1)
+2024-05-31: Opened 2, Closed 2, Weekly: £613, Monthly: £1429
+COMPOUNDING: Capital grew from £16066 to £16133 (+£68)
+COMPOUNDING: Capital grew from £16133 to £16134 (+£1)
+2024-06-03: Opened 2, Closed 2, Weekly: £68, Monthly: £1497
+COMPOUNDING: Capital grew from £16134 to £16201 (+£68)
+COMPOUNDING: Capital grew from £16201 to £16202 (+£1)
+2024-06-04: Opened 2, Closed 2, Weekly: £136, Monthly: £1565
+COMPOUNDING: Capital grew from £16202 to £16269 (+£68)
+COMPOUNDING: Capital grew from £16269 to £16270 (+£1)
+2024-06-05: Opened 2, Closed 2, Weekly: £204, Monthly: £1633
+COMPOUNDING: Capital grew from £16270 to £16337 (+£68)
+COMPOUNDING: Capital grew from £16337 to £16338 (+£1)
+2024-06-06: Opened 2, Closed 2, Weekly: £272, Monthly: £1702
+COMPOUNDING: Capital grew from £16338 to £16405 (+£68)
+COMPOUNDING: Capital grew from £16405 to £16406 (+£1)
+2024-06-07: Opened 2, Closed 2, Weekly: £340, Monthly: £1770
+COMPOUNDING: Capital grew from £16406 to £16473 (+£68)
+COMPOUNDING: Capital grew from £16473 to £16474 (+£1)
+2024-06-10: Opened 2, Closed 2, Weekly: £68, Monthly: £1838
+COMPOUNDING: Capital grew from £16474 to £16542 (+£68)
+COMPOUNDING: Capital grew from £16542 to £16542 (+£1)
+2024-06-11: Opened 2, Closed 2, Weekly: £136, Monthly: £1906
+COMPOUNDING: Capital grew from £16542 to £16595 (+£53)
+COMPOUNDING: Capital grew from £16595 to £16595 (+£0)
+2024-06-12: Opened 2, Closed 2, Weekly: £189, Monthly: £1959
+COMPOUNDING: Capital grew from £16595 to £16648 (+£53)
+COMPOUNDING: Capital grew from £16648 to £16648 (+£0)
+2024-06-13: Opened 2, Closed 2, Weekly: £242, Monthly: £2012
+COMPOUNDING: Capital grew from £16648 to £16701 (+£53)
+COMPOUNDING: Capital grew from £16701 to £16701 (+£0)
+2024-06-14: Opened 2, Closed 2, Weekly: £295, Monthly: £2065
+COMPOUNDING: Capital grew from £16701 to £16753 (+£53)
+COMPOUNDING: Capital grew from £16753 to £16754 (+£0)
+2024-06-17: Opened 2, Closed 2, Weekly: £53, Monthly: £2118
+COMPOUNDING: Capital grew from £16754 to £16806 (+£53)
+COMPOUNDING: Capital grew from £16806 to £16807 (+£0)
+2024-06-18: Opened 2, Closed 2, Weekly: £106, Monthly: £2170
+COMPOUNDING: Capital grew from £16807 to £16859 (+£53)
+COMPOUNDING: Capital grew from £16859 to £16860 (+£0)
+2024-06-20: Opened 2, Closed 2, Weekly: £159, Monthly: £2223
+COMPOUNDING: Capital grew from £16860 to £16912 (+£53)
+COMPOUNDING: Capital grew from £16912 to £16913 (+£0)
+2024-06-21: Opened 2, Closed 2, Weekly: £212, Monthly: £2276
+COMPOUNDING: Capital grew from £16913 to £16965 (+£53)
+COMPOUNDING: Capital grew from £16965 to £16966 (+£0)
+2024-06-24: Opened 2, Closed 2, Weekly: £53, Monthly: £2329
+COMPOUNDING: Capital grew from £16966 to £17018 (+£53)
+COMPOUNDING: Capital grew from £17018 to £17019 (+£0)
+2024-06-25: Opened 2, Closed 2, Weekly: £106, Monthly: £2382
+COMPOUNDING: Capital grew from £17019 to £17071 (+£53)
+COMPOUNDING: Capital grew from £17071 to £17072 (+£0)
+2024-06-26: Opened 2, Closed 2, Weekly: £159, Monthly: £2435
+COMPOUNDING: Capital grew from £17072 to £17124 (+£53)
+COMPOUNDING: Capital grew from £17124 to £17125 (+£0)
+2024-06-27: Opened 2, Closed 2, Weekly: £212, Monthly: £2488
+COMPOUNDING: Capital grew from £17125 to £17177 (+£53)
+COMPOUNDING: Capital grew from £17177 to £17178 (+£0)
+2024-06-28: Opened 2, Closed 2, Weekly: £265, Monthly: £2541
+COMPOUNDING: Capital grew from £17178 to £17230 (+£53)
+COMPOUNDING: Capital grew from £17230 to £17231 (+£0)
+2024-07-01: Opened 2, Closed 2, Weekly: £53, Monthly: £53
+COMPOUNDING: Capital grew from £17231 to £17283 (+£53)
+COMPOUNDING: Capital grew from £17283 to £17283 (+£0)
+2024-07-02: Opened 2, Closed 2, Weekly: £106, Monthly: £106
+COMPOUNDING: Capital grew from £17283 to £17336 (+£53)
+COMPOUNDING: Capital grew from £17336 to £17336 (+£0)
+2024-07-03: Opened 2, Closed 2, Weekly: £159, Monthly: £159
+COMPOUNDING: Capital grew from £17336 to £17389 (+£53)
+COMPOUNDING: Capital grew from £17389 to £17389 (+£0)
+2024-07-05: Opened 2, Closed 2, Weekly: £212, Monthly: £212
+COMPOUNDING: Capital grew from £17389 to £17442 (+£53)
+COMPOUNDING: Capital grew from £17442 to £17442 (+£0)
+2024-07-08: Opened 2, Closed 2, Weekly: £53, Monthly: £265
+COMPOUNDING: Capital grew from £17442 to £17495 (+£53)
+COMPOUNDING: Capital grew from £17495 to £17495 (+£0)
+2024-07-09: Opened 2, Closed 2, Weekly: £106, Monthly: £318
+COMPOUNDING: Capital grew from £17495 to £17548 (+£53)
+COMPOUNDING: Capital grew from £17548 to £17548 (+£0)
+2024-07-10: Opened 2, Closed 2, Weekly: £159, Monthly: £371
+COMPOUNDING: Capital grew from £17548 to £17616 (+£68)
+COMPOUNDING: Capital grew from £17616 to £17616 (+£1)
+2024-07-11: Opened 2, Closed 2, Weekly: £227, Monthly: £439
+COMPOUNDING: Capital grew from £17616 to £17684 (+£68)
+COMPOUNDING: Capital grew from £17684 to £17684 (+£1)
+2024-07-12: Opened 2, Closed 2, Weekly: £295, Monthly: £507
+COMPOUNDING: Capital grew from £17684 to £17752 (+£68)
+COMPOUNDING: Capital grew from £17752 to £17752 (+£1)
+2024-07-15: Opened 2, Closed 2, Weekly: £68, Monthly: £575
+COMPOUNDING: Capital grew from £17752 to £17820 (+£68)
+COMPOUNDING: Capital grew from £17820 to £17820 (+£1)
+2024-07-16: Opened 2, Closed 2, Weekly: £136, Monthly: £643
+COMPOUNDING: Capital grew from £17820 to £17888 (+£68)
+COMPOUNDING: Capital grew from £17888 to £17889 (+£1)
+2024-07-22: Opened 2, Closed 2, Weekly: £68, Monthly: £711
+COMPOUNDING: Capital grew from £17889 to £17956 (+£68)
+COMPOUNDING: Capital grew from £17956 to £17957 (+£1)
+2024-07-23: Opened 2, Closed 2, Weekly: £136, Monthly: £779
+COMPOUNDING: Capital grew from £17957 to £18024 (+£68)
+COMPOUNDING: Capital grew from £18024 to £18025 (+£1)
+2024-07-24: Opened 2, Closed 2, Weekly: £204, Monthly: £847
+COMPOUNDING: Capital grew from £18025 to £18092 (+£68)
+COMPOUNDING: Capital grew from £18092 to £18093 (+£1)
+2024-07-25: Opened 2, Closed 2, Weekly: £272, Monthly: £915
+COMPOUNDING: Capital grew from £18093 to £18160 (+£68)
+COMPOUNDING: Capital grew from £18160 to £18161 (+£1)
+2024-07-26: Opened 2, Closed 2, Weekly: £340, Monthly: £983
+COMPOUNDING: Capital grew from £18161 to £18228 (+£68)
+COMPOUNDING: Capital grew from £18228 to £18229 (+£1)
+2024-07-29: Opened 2, Closed 2, Weekly: £68, Monthly: £1051
+COMPOUNDING: Capital grew from £18229 to £18296 (+£68)
+COMPOUNDING: Capital grew from £18296 to £18297 (+£1)
+2024-07-30: Opened 2, Closed 2, Weekly: £136, Monthly: £1119
+COMPOUNDING: Capital grew from £18297 to £18364 (+£68)
+COMPOUNDING: Capital grew from £18364 to £18365 (+£1)
+2024-07-31: Opened 2, Closed 2, Weekly: £204, Monthly: £1187
+COMPOUNDING: Capital grew from £18365 to £18432 (+£68)
+COMPOUNDING: Capital grew from £18432 to £18433 (+£1)
+2024-08-01: Opened 2, Closed 2, Weekly: £272, Monthly: £68
+COMPOUNDING: Capital grew from £18433 to £18501 (+£68)
+COMPOUNDING: Capital grew from £18501 to £18501 (+£1)
+2024-08-02: Opened 2, Closed 2, Weekly: £340, Monthly: £136
+COMPOUNDING: Capital grew from £18501 to £18569 (+£68)
+COMPOUNDING: Capital grew from £18569 to £18569 (+£1)
+2024-08-05: Opened 2, Closed 2, Weekly: £68, Monthly: £204
+COMPOUNDING: Capital grew from £18569 to £18637 (+£68)
+COMPOUNDING: Capital grew from £18637 to £18637 (+£1)
+2024-08-06: Opened 2, Closed 2, Weekly: £136, Monthly: £272
+COMPOUNDING: Capital grew from £18637 to £18705 (+£68)
+COMPOUNDING: Capital grew from £18705 to £18705 (+£1)
+2024-08-07: Opened 2, Closed 2, Weekly: £204, Monthly: £340
+COMPOUNDING: Capital grew from £18705 to £18773 (+£68)
+COMPOUNDING: Capital grew from £18773 to £18773 (+£1)
+2024-08-08: Opened 2, Closed 2, Weekly: £272, Monthly: £408
+COMPOUNDING: Capital grew from £18773 to £18841 (+£68)
+COMPOUNDING: Capital grew from £18841 to £18841 (+£1)
+2024-08-09: Opened 2, Closed 2, Weekly: £340, Monthly: £476
+COMPOUNDING: Capital grew from £18841 to £18909 (+£68)
+COMPOUNDING: Capital grew from £18909 to £18909 (+£1)
+2024-08-12: Opened 2, Closed 2, Weekly: £68, Monthly: £544
+COMPOUNDING: Capital grew from £18909 to £18977 (+£68)
+COMPOUNDING: Capital grew from £18977 to £18978 (+£1)
+2024-08-13: Opened 2, Closed 2, Weekly: £136, Monthly: £613
+COMPOUNDING: Capital grew from £18978 to £19045 (+£68)
+COMPOUNDING: Capital grew from £19045 to £19046 (+£1)
+2024-08-14: Opened 2, Closed 2, Weekly: £204, Monthly: £681
+COMPOUNDING: Capital grew from £19046 to £19113 (+£68)
+COMPOUNDING: Capital grew from £19113 to £19114 (+£1)
+2024-08-15: Opened 2, Closed 2, Weekly: £272, Monthly: £749
+COMPOUNDING: Capital grew from £19114 to £19181 (+£68)
+COMPOUNDING: Capital grew from £19181 to £19182 (+£1)
+2024-08-16: Opened 2, Closed 2, Weekly: £340, Monthly: £817
+COMPOUNDING: Capital grew from £19182 to £19249 (+£68)
+COMPOUNDING: Capital grew from £19249 to £19250 (+£1)
+2024-08-19: Opened 2, Closed 2, Weekly: £68, Monthly: £885
+COMPOUNDING: Capital grew from £19250 to £19317 (+£68)
+COMPOUNDING: Capital grew from £19317 to £19318 (+£1)
+2024-08-20: Opened 2, Closed 2, Weekly: £136, Monthly: £953
+COMPOUNDING: Capital grew from £19318 to £19385 (+£68)
+COMPOUNDING: Capital grew from £19385 to £19386 (+£1)
+2024-08-21: Opened 2, Closed 2, Weekly: £204, Monthly: £1021
+COMPOUNDING: Capital grew from £19386 to £19453 (+£68)
+COMPOUNDING: Capital grew from £19453 to £19454 (+£1)
+2024-08-22: Opened 2, Closed 2, Weekly: £272, Monthly: £1089
+COMPOUNDING: Capital grew from £19454 to £19521 (+£68)
+COMPOUNDING: Capital grew from £19521 to £19522 (+£1)
+2024-08-23: Opened 2, Closed 2, Weekly: £340, Monthly: £1157
+COMPOUNDING: Capital grew from £19522 to £19589 (+£68)
+COMPOUNDING: Capital grew from £19589 to £19590 (+£1)
+2024-08-26: Opened 2, Closed 2, Weekly: £68, Monthly: £1225
+COMPOUNDING: Capital grew from £19590 to £19658 (+£68)
+COMPOUNDING: Capital grew from £19658 to £19658 (+£1)
+2024-08-27: Opened 2, Closed 2, Weekly: £136, Monthly: £1293
+COMPOUNDING: Capital grew from £19658 to £19726 (+£68)
+COMPOUNDING: Capital grew from £19726 to £19726 (+£1)
+2024-08-28: Opened 2, Closed 2, Weekly: £204, Monthly: £1361
+COMPOUNDING: Capital grew from £19726 to £19794 (+£68)
+COMPOUNDING: Capital grew from £19794 to £19794 (+£1)
+2024-08-29: Opened 2, Closed 2, Weekly: £272, Monthly: £1429
+COMPOUNDING: Capital grew from £19794 to £19862 (+£68)
+COMPOUNDING: Capital grew from £19862 to £19862 (+£1)
+2024-08-30: Opened 2, Closed 2, Weekly: £340, Monthly: £1497
+COMPOUNDING: Capital grew from £19862 to £19930 (+£68)
+COMPOUNDING: Capital grew from £19930 to £19930 (+£1)
+2024-09-03: Opened 2, Closed 2, Weekly: £408, Monthly: £1565
+COMPOUNDING: Capital grew from £19930 to £19998 (+£68)
+COMPOUNDING: Capital grew from £19998 to £19998 (+£1)
+2024-09-04: Opened 2, Closed 2, Weekly: £476, Monthly: £1633
+COMPOUNDING: Capital grew from £19998 to £20066 (+£68)
+COMPOUNDING: Capital grew from £20066 to £20066 (+£1)
+2024-09-05: Opened 2, Closed 2, Weekly: £544, Monthly: £1702
+COMPOUNDING: Capital grew from £20066 to £20134 (+£68)
+COMPOUNDING: Capital grew from £20134 to £20135 (+£1)
+2024-09-06: Opened 2, Closed 2, Weekly: £613, Monthly: £1770
+COMPOUNDING: Capital grew from £20135 to £20202 (+£68)
+COMPOUNDING: Capital grew from £20202 to £20203 (+£1)
+2024-09-09: Opened 2, Closed 2, Weekly: £68, Monthly: £1838
+COMPOUNDING: Capital grew from £20203 to £20270 (+£68)
+COMPOUNDING: Capital grew from £20270 to £20271 (+£1)
+2024-09-10: Opened 2, Closed 2, Weekly: £136, Monthly: £1906
+COMPOUNDING: Capital grew from £20271 to £20338 (+£68)
+COMPOUNDING: Capital grew from £20338 to £20339 (+£1)
+2024-09-11: Opened 2, Closed 2, Weekly: £204, Monthly: £1974
+COMPOUNDING: Capital grew from £20339 to £20406 (+£68)
+COMPOUNDING: Capital grew from £20406 to £20407 (+£1)
+2024-09-12: Opened 2, Closed 2, Weekly: £272, Monthly: £2042
+COMPOUNDING: Capital grew from £20407 to £20474 (+£68)
+COMPOUNDING: Capital grew from £20474 to £20475 (+£1)
+2024-09-13: Opened 2, Closed 2, Weekly: £340, Monthly: £2110
+COMPOUNDING: Capital grew from £20475 to £20542 (+£68)
+COMPOUNDING: Capital grew from £20542 to £20543 (+£1)
+2024-09-16: Opened 2, Closed 2, Weekly: £68, Monthly: £2178
+COMPOUNDING: Capital grew from £20543 to £20610 (+£68)
+COMPOUNDING: Capital grew from £20610 to £20611 (+£1)
+2024-09-17: Opened 2, Closed 2, Weekly: £136, Monthly: £2246
+COMPOUNDING: Capital grew from £20611 to £20678 (+£68)
+COMPOUNDING: Capital grew from £20678 to £20679 (+£1)
+2024-09-18: Opened 2, Closed 2, Weekly: £204, Monthly: £2314
+COMPOUNDING: Capital grew from £20679 to £20747 (+£68)
+COMPOUNDING: Capital grew from £20747 to £20747 (+£1)
+2024-09-19: Opened 2, Closed 2, Weekly: £272, Monthly: £2382
+COMPOUNDING: Capital grew from £20747 to £20815 (+£68)
+COMPOUNDING: Capital grew from £20815 to £20815 (+£1)
+2024-09-20: Opened 2, Closed 2, Weekly: £340, Monthly: £2450
+COMPOUNDING: Capital grew from £20815 to £20883 (+£68)
+COMPOUNDING: Capital grew from £20883 to £20883 (+£1)
+2024-09-23: Opened 2, Closed 2, Weekly: £68, Monthly: £2518
+COMPOUNDING: Capital grew from £20883 to £20951 (+£68)
+COMPOUNDING: Capital grew from £20951 to £20951 (+£1)
+2024-09-24: Opened 2, Closed 2, Weekly: £136, Monthly: £2586
+COMPOUNDING: Capital grew from £20951 to £21019 (+£68)
+COMPOUNDING: Capital grew from £21019 to £21019 (+£1)
+2024-09-25: Opened 2, Closed 2, Weekly: £204, Monthly: £2654
+COMPOUNDING: Capital grew from £21019 to £21087 (+£68)
+COMPOUNDING: Capital grew from £21087 to £21087 (+£1)
+2024-09-26: Opened 2, Closed 2, Weekly: £272, Monthly: £2722
+COMPOUNDING: Capital grew from £21087 to £21155 (+£68)
+COMPOUNDING: Capital grew from £21155 to £21155 (+£1)
+2024-09-27: Opened 2, Closed 2, Weekly: £340, Monthly: £2790
+COMPOUNDING: Capital grew from £21155 to £21223 (+£68)
+COMPOUNDING: Capital grew from £21223 to £21223 (+£1)
+2024-09-30: Opened 2, Closed 2, Weekly: £68, Monthly: £2859
+COMPOUNDING: Capital grew from £21223 to £21291 (+£68)
+COMPOUNDING: Capital grew from £21291 to £21292 (+£1)
+2024-10-01: Opened 2, Closed 2, Weekly: £136, Monthly: £68
+COMPOUNDING: Capital grew from £21292 to £21359 (+£68)
+COMPOUNDING: Capital grew from £21359 to £21360 (+£1)
+2024-10-02: Opened 2, Closed 2, Weekly: £204, Monthly: £136
+COMPOUNDING: Capital grew from £21360 to £21427 (+£68)
+COMPOUNDING: Capital grew from £21427 to £21428 (+£1)
+2024-10-03: Opened 2, Closed 2, Weekly: £272, Monthly: £204
+COMPOUNDING: Capital grew from £21428 to £21495 (+£68)
+COMPOUNDING: Capital grew from £21495 to £21496 (+£1)
+2024-10-04: Opened 2, Closed 2, Weekly: £340, Monthly: £272
+COMPOUNDING: Capital grew from £21496 to £21563 (+£68)
+COMPOUNDING: Capital grew from £21563 to £21564 (+£1)
+2024-10-07: Opened 2, Closed 2, Weekly: £68, Monthly: £340
+COMPOUNDING: Capital grew from £21564 to £21631 (+£68)
+COMPOUNDING: Capital grew from £21631 to £21632 (+£1)
+2024-10-08: Opened 2, Closed 2, Weekly: £136, Monthly: £408
+COMPOUNDING: Capital grew from £21632 to £21699 (+£68)
+COMPOUNDING: Capital grew from £21699 to £21700 (+£1)
+2024-10-09: Opened 2, Closed 2, Weekly: £204, Monthly: £476
+COMPOUNDING: Capital grew from £21700 to £21767 (+£68)
+COMPOUNDING: Capital grew from £21767 to £21768 (+£1)
+2024-10-10: Opened 2, Closed 2, Weekly: £272, Monthly: £544
+COMPOUNDING: Capital grew from £21768 to £21835 (+£68)
+COMPOUNDING: Capital grew from £21835 to £21836 (+£1)
+2024-10-11: Opened 2, Closed 2, Weekly: £340, Monthly: £613
+COMPOUNDING: Capital grew from £21836 to £21904 (+£68)
+COMPOUNDING: Capital grew from £21904 to £21904 (+£1)
+2024-10-14: Opened 2, Closed 2, Weekly: £68, Monthly: £681
+COMPOUNDING: Capital grew from £21904 to £22017 (+£113)
+COMPOUNDING: Capital grew from £22017 to £22018 (+£1)
+2024-10-15: Opened 2, Closed 2, Weekly: £182, Monthly: £794
+COMPOUNDING: Capital grew from £22018 to £22130 (+£113)
+COMPOUNDING: Capital grew from £22130 to £22131 (+£1)
+2024-10-21: Opened 2, Closed 2, Weekly: £114, Monthly: £908
+COMPOUNDING: Capital grew from £22131 to £22244 (+£113)
+COMPOUNDING: Capital grew from £22244 to £22245 (+£1)
+2024-10-22: Opened 2, Closed 2, Weekly: £227, Monthly: £1021
+COMPOUNDING: Capital grew from £22245 to £22357 (+£113)
+COMPOUNDING: Capital grew from £22357 to £22358 (+£1)
+2024-10-23: Opened 2, Closed 2, Weekly: £341, Monthly: £1135
+COMPOUNDING: Capital grew from £22358 to £22471 (+£113)
+COMPOUNDING: Capital grew from £22471 to £22472 (+£1)
+2024-10-24: Opened 2, Closed 2, Weekly: £454, Monthly: £1248
+COMPOUNDING: Capital grew from £22472 to £22584 (+£113)
+COMPOUNDING: Capital grew from £22584 to £22585 (+£1)
+2024-10-25: Opened 2, Closed 2, Weekly: £568, Monthly: £1362
+COMPOUNDING: Capital grew from £22585 to £22698 (+£113)
+COMPOUNDING: Capital grew from £22698 to £22699 (+£1)
+2024-10-28: Opened 2, Closed 2, Weekly: £114, Monthly: £1475
+COMPOUNDING: Capital grew from £22699 to £22811 (+£113)
+COMPOUNDING: Capital grew from £22811 to £22812 (+£1)
+2024-10-29: Opened 2, Closed 2, Weekly: £227, Monthly: £1589
+COMPOUNDING: Capital grew from £22812 to £22925 (+£113)
+COMPOUNDING: Capital grew from £22925 to £22926 (+£1)
+2024-10-30: Opened 2, Closed 2, Weekly: £341, Monthly: £1702
+COMPOUNDING: Capital grew from £22926 to £23038 (+£113)
+COMPOUNDING: Capital grew from £23038 to £23039 (+£1)
+2024-10-31: Opened 2, Closed 2, Weekly: £454, Monthly: £1816
+COMPOUNDING: Capital grew from £23039 to £23152 (+£113)
+COMPOUNDING: Capital grew from £23152 to £23153 (+£1)
+2024-11-01: Opened 2, Closed 2, Weekly: £568, Monthly: £114
+COMPOUNDING: Capital grew from £23153 to £23266 (+£113)
+COMPOUNDING: Capital grew from £23266 to £23267 (+£1)
+2024-11-04: Opened 2, Closed 2, Weekly: £114, Monthly: £227
+COMPOUNDING: Capital grew from £23267 to £23379 (+£113)
+COMPOUNDING: Capital grew from £23379 to £23380 (+£1)
+2024-11-05: Opened 2, Closed 2, Weekly: £227, Monthly: £341
+COMPOUNDING: Capital grew from £23380 to £23493 (+£113)
+COMPOUNDING: Capital grew from £23493 to £23494 (+£1)
+2024-11-06: Opened 2, Closed 2, Weekly: £341, Monthly: £454
+COMPOUNDING: Capital grew from £23494 to £23606 (+£113)
+COMPOUNDING: Capital grew from £23606 to £23607 (+£1)
+2024-11-07: Opened 2, Closed 2, Weekly: £454, Monthly: £568
+COMPOUNDING: Capital grew from £23607 to £23720 (+£113)
+COMPOUNDING: Capital grew from £23720 to £23721 (+£1)
+2024-11-08: Opened 2, Closed 2, Weekly: £568, Monthly: £681
+COMPOUNDING: Capital grew from £23721 to £23833 (+£113)
+COMPOUNDING: Capital grew from £23833 to £23834 (+£1)
+2024-11-11: Opened 2, Closed 2, Weekly: £114, Monthly: £795
+COMPOUNDING: Capital grew from £23834 to £23947 (+£113)
+COMPOUNDING: Capital grew from £23947 to £23948 (+£1)
+2024-11-12: Opened 2, Closed 2, Weekly: £227, Monthly: £908
+COMPOUNDING: Capital grew from £23948 to £24060 (+£113)
+COMPOUNDING: Capital grew from £24060 to £24061 (+£1)
+2024-11-13: Opened 2, Closed 2, Weekly: £341, Monthly: £1022
+COMPOUNDING: Capital grew from £24061 to £24174 (+£113)
+COMPOUNDING: Capital grew from £24174 to £24175 (+£1)
+2024-11-14: Opened 2, Closed 2, Weekly: £454, Monthly: £1135
+COMPOUNDING: Capital grew from £24175 to £24287 (+£113)
+COMPOUNDING: Capital grew from £24287 to £24288 (+£1)
+2024-11-15: Opened 2, Closed 2, Weekly: £568, Monthly: £1249
+COMPOUNDING: Capital grew from £24288 to £24401 (+£113)
+COMPOUNDING: Capital grew from £24401 to £24402 (+£1)
+2024-11-18: Opened 2, Closed 2, Weekly: £114, Monthly: £1362
+COMPOUNDING: Capital grew from £24402 to £24514 (+£113)
+COMPOUNDING: Capital grew from £24514 to £24516 (+£1)
+2024-11-19: Opened 2, Closed 2, Weekly: £227, Monthly: £1476
+COMPOUNDING: Capital grew from £24516 to £24628 (+£113)
+COMPOUNDING: Capital grew from £24628 to £24629 (+£1)
+2024-11-20: Opened 2, Closed 2, Weekly: £341, Monthly: £1590
+COMPOUNDING: Capital grew from £24629 to £24742 (+£113)
+COMPOUNDING: Capital grew from £24742 to £24743 (+£1)
+2024-11-21: Opened 2, Closed 2, Weekly: £454, Monthly: £1703
+COMPOUNDING: Capital grew from £24743 to £24923 (+£180)
+COMPOUNDING: Capital grew from £24923 to £24924 (+£2)
+2024-11-22: Opened 2, Closed 2, Weekly: £636, Monthly: £1885
+COMPOUNDING: Capital grew from £24924 to £25104 (+£180)
+COMPOUNDING: Capital grew from £25104 to £25106 (+£2)
+2024-11-25: Opened 2, Closed 2, Weekly: £182, Monthly: £2066
+COMPOUNDING: Capital grew from £25106 to £25286 (+£180)
+COMPOUNDING: Capital grew from £25286 to £25287 (+£2)
+2024-11-26: Opened 2, Closed 2, Weekly: £363, Monthly: £2248
+COMPOUNDING: Capital grew from £25287 to £25467 (+£180)
+COMPOUNDING: Capital grew from £25467 to £25469 (+£2)
+2024-11-27: Opened 2, Closed 2, Weekly: £545, Monthly: £2430
+COMPOUNDING: Capital grew from £25469 to £25649 (+£180)
+COMPOUNDING: Capital grew from £25649 to £25651 (+£2)
+2024-11-29: Opened 2, Closed 2, Weekly: £726, Monthly: £2611
+COMPOUNDING: Capital grew from £25651 to £25831 (+£180)
+COMPOUNDING: Capital grew from £25831 to £25832 (+£2)
+2024-12-02: Opened 2, Closed 2, Weekly: £182, Monthly: £2793
+COMPOUNDING: Capital grew from £25832 to £26012 (+£180)
+COMPOUNDING: Capital grew from £26012 to £26014 (+£2)
+2024-12-03: Opened 2, Closed 2, Weekly: £363, Monthly: £2974
+COMPOUNDING: Capital grew from £26014 to £26194 (+£180)
+COMPOUNDING: Capital grew from £26194 to £26195 (+£2)
+2024-12-04: Opened 2, Closed 2, Weekly: £545, Monthly: £3156
+COMPOUNDING: Capital grew from £26195 to £26375 (+£180)
+COMPOUNDING: Capital grew from £26375 to £26377 (+£2)
+2024-12-05: Opened 2, Closed 2, Weekly: £726, Monthly: £3338
+COMPOUNDING: Capital grew from £26377 to £26557 (+£180)
+COMPOUNDING: Capital grew from £26557 to £26559 (+£2)
+2024-12-06: Opened 2, Closed 2, Weekly: £908, Monthly: £3519
+COMPOUNDING: Capital grew from £26559 to £26739 (+£180)
+COMPOUNDING: Capital grew from £26739 to £26740 (+£2)
+2024-12-09: Opened 2, Closed 2, Weekly: £182, Monthly: £3701
+COMPOUNDING: Capital grew from £26740 to £26920 (+£180)
+COMPOUNDING: Capital grew from £26920 to £26922 (+£2)
+2024-12-10: Opened 2, Closed 2, Weekly: £363, Monthly: £3882
+COMPOUNDING: Capital grew from £26922 to £27102 (+£180)
+COMPOUNDING: Capital grew from £27102 to £27103 (+£2)
+2024-12-11: Opened 2, Closed 2, Weekly: £545, Monthly: £4064
+COMPOUNDING: Capital grew from £27103 to £27283 (+£180)
+COMPOUNDING: Capital grew from £27283 to £27285 (+£2)
+2024-12-12: Opened 2, Closed 2, Weekly: £726, Monthly: £4246
+COMPOUNDING: Capital grew from £27285 to £27465 (+£180)
+COMPOUNDING: Capital grew from £27465 to £27467 (+£2)
+2024-12-13: Opened 2, Closed 2, Weekly: £908, Monthly: £4427
+COMPOUNDING: Capital grew from £27467 to £27647 (+£180)
+COMPOUNDING: Capital grew from £27647 to £27648 (+£2)
+2024-12-16: Opened 2, Closed 2, Weekly: £182, Monthly: £4609
+COMPOUNDING: Capital grew from £27648 to £27828 (+£180)
+COMPOUNDING: Capital grew from £27828 to £27830 (+£2)
+2024-12-17: Opened 2, Closed 2, Weekly: £363, Monthly: £4790
+COMPOUNDING: Capital grew from £27830 to £28010 (+£180)
+COMPOUNDING: Capital grew from £28010 to £28011 (+£2)
+2024-12-23: Opened 2, Closed 2, Weekly: £182, Monthly: £4972
+COMPOUNDING: Capital grew from £28011 to £28191 (+£180)
+COMPOUNDING: Capital grew from £28191 to £28193 (+£2)
+2024-12-24: Opened 2, Closed 2, Weekly: £363, Monthly: £5154
+COMPOUNDING: Capital grew from £28193 to £28373 (+£180)
+COMPOUNDING: Capital grew from £28373 to £28375 (+£2)
+2024-12-26: Opened 2, Closed 2, Weekly: £545, Monthly: £5335
+COMPOUNDING: Capital grew from £28375 to £28555 (+£180)
+COMPOUNDING: Capital grew from £28555 to £28556 (+£2)
+2024-12-27: Opened 2, Closed 2, Weekly: £726, Monthly: £5517
+COMPOUNDING: Capital grew from £28556 to £28736 (+£180)
+COMPOUNDING: Capital grew from £28736 to £28738 (+£2)
+2024-12-30: Opened 2, Closed 2, Weekly: £182, Monthly: £5698
+COMPOUNDING: Capital grew from £28738 to £28918 (+£180)
+COMPOUNDING: Capital grew from £28918 to £28919 (+£2)
+2024-12-31: Opened 2, Closed 2, Weekly: £363, Monthly: £5880
+COMPOUNDING: Capital grew from £28919 to £29032 (+£113)
+COMPOUNDING: Capital grew from £29032 to £29033 (+£1)
+2025-01-02: Opened 2, Closed 2, Weekly: £477, Monthly: £5993
+COMPOUNDING: Capital grew from £29033 to £29145 (+£113)
+COMPOUNDING: Capital grew from £29145 to £29146 (+£1)
+2025-01-03: Opened 2, Closed 2, Weekly: £590, Monthly: £6107
+COMPOUNDING: Capital grew from £29146 to £29326 (+£180)
+COMPOUNDING: Capital grew from £29326 to £29328 (+£2)
+2025-01-06: Opened 2, Closed 2, Weekly: £182, Monthly: £6289
+COMPOUNDING: Capital grew from £29328 to £29508 (+£180)
+COMPOUNDING: Capital grew from £29508 to £29510 (+£2)
+2025-01-07: Opened 2, Closed 2, Weekly: £363, Monthly: £6470
+COMPOUNDING: Capital grew from £29510 to £29622 (+£113)
+COMPOUNDING: Capital grew from £29622 to £29623 (+£1)
+2025-01-08: Opened 2, Closed 2, Weekly: £477, Monthly: £6584
+COMPOUNDING: Capital grew from £29623 to £29736 (+£113)
+COMPOUNDING: Capital grew from £29736 to £29737 (+£1)
+2025-01-10: Opened 2, Closed 2, Weekly: £590, Monthly: £6697
+COMPOUNDING: Capital grew from £29737 to £29849 (+£113)
+COMPOUNDING: Capital grew from £29849 to £29850 (+£1)
+2025-01-13: Opened 2, Closed 2, Weekly: £114, Monthly: £6811
+COMPOUNDING: Capital grew from £29850 to £29963 (+£113)
+COMPOUNDING: Capital grew from £29963 to £29964 (+£1)
+2025-01-14: Opened 2, Closed 2, Weekly: £227, Monthly: £6924
+COMPOUNDING: Capital grew from £29964 to £30144 (+£180)
+COMPOUNDING: Capital grew from £30144 to £30145 (+£2)
+2025-01-21: Opened 2, Closed 2, Weekly: £409, Monthly: £7106
+COMPOUNDING: Capital grew from £30145 to £30325 (+£180)
+COMPOUNDING: Capital grew from £30325 to £30327 (+£2)
+2025-01-22: Opened 2, Closed 2, Weekly: £590, Monthly: £7288
+COMPOUNDING: Capital grew from £30327 to £30507 (+£180)
+COMPOUNDING: Capital grew from £30507 to £30509 (+£2)
+2025-01-23: Opened 2, Closed 2, Weekly: £772, Monthly: £7469
+COMPOUNDING: Capital grew from £30509 to £30689 (+£180)
+COMPOUNDING: Capital grew from £30689 to £30690 (+£2)
+2025-01-24: Opened 2, Closed 2, Weekly: £953, Monthly: £7651
+COMPOUNDING: Capital grew from £30690 to £30870 (+£180)
+COMPOUNDING: Capital grew from £30870 to £30872 (+£2)
+2025-01-27: Opened 2, Closed 2, Weekly: £182, Monthly: £7832
+COMPOUNDING: Capital grew from £30872 to £31052 (+£180)
+COMPOUNDING: Capital grew from £31052 to £31053 (+£2)
+2025-01-28: Opened 2, Closed 2, Weekly: £363, Monthly: £8014
+COMPOUNDING: Capital grew from £31053 to £31233 (+£180)
+COMPOUNDING: Capital grew from £31233 to £31235 (+£2)
+2025-01-29: Opened 2, Closed 2, Weekly: £545, Monthly: £8196
+COMPOUNDING: Capital grew from £31235 to £31415 (+£180)
+COMPOUNDING: Capital grew from £31415 to £31417 (+£2)
+2025-01-30: Opened 2, Closed 2, Weekly: £726, Monthly: £8377
+COMPOUNDING: Capital grew from £31417 to £31597 (+£180)
+COMPOUNDING: Capital grew from £31597 to £31598 (+£2)
+2025-01-31: Opened 2, Closed 2, Weekly: £908, Monthly: £8559
+COMPOUNDING: Capital grew from £31598 to £31711 (+£113)
+COMPOUNDING: Capital grew from £31711 to £31712 (+£1)
+2025-02-03: Opened 2, Closed 2, Weekly: £114, Monthly: £8672
+COMPOUNDING: Capital grew from £31712 to £31892 (+£180)
+COMPOUNDING: Capital grew from £31892 to £31893 (+£2)
+2025-02-04: Opened 2, Closed 2, Weekly: £295, Monthly: £8854
+COMPOUNDING: Capital grew from £31893 to £32073 (+£180)
+COMPOUNDING: Capital grew from £32073 to £32075 (+£2)
+2025-02-05: Opened 2, Closed 2, Weekly: £477, Monthly: £9035
+COMPOUNDING: Capital grew from £32075 to £32255 (+£180)
+COMPOUNDING: Capital grew from £32255 to £32257 (+£2)
+2025-02-06: Opened 2, Closed 2, Weekly: £658, Monthly: £9217
+COMPOUNDING: Capital grew from £32257 to £32369 (+£113)
+COMPOUNDING: Capital grew from £32369 to £32370 (+£1)
+2025-02-07: Opened 2, Closed 2, Weekly: £772, Monthly: £9331
+COMPOUNDING: Capital grew from £32370 to £32550 (+£180)
+COMPOUNDING: Capital grew from £32550 to £32552 (+£2)
+2025-02-10: Opened 2, Closed 2, Weekly: £182, Monthly: £9512
+COMPOUNDING: Capital grew from £32552 to £32664 (+£113)
+COMPOUNDING: Capital grew from £32664 to £32665 (+£1)
+2025-02-11: Opened 2, Closed 2, Weekly: £295, Monthly: £9626
+COMPOUNDING: Capital grew from £32665 to £32778 (+£113)
+COMPOUNDING: Capital grew from £32778 to £32779 (+£1)
+2025-02-12: Opened 2, Closed 2, Weekly: £409, Monthly: £9739
+COMPOUNDING: Capital grew from £32779 to £32959 (+£180)
+COMPOUNDING: Capital grew from £32959 to £32960 (+£2)
+2025-02-13: Opened 2, Closed 2, Weekly: £590, Monthly: £9921
+COMPOUNDING: Capital grew from £32960 to £33140 (+£180)
+COMPOUNDING: Capital grew from £33140 to £33142 (+£2)
+2025-02-14: Opened 2, Closed 2, Weekly: £772, Monthly: £10103
+COMPOUNDING: Capital grew from £33142 to £33322 (+£180)
+COMPOUNDING: Capital grew from £33322 to £33324 (+£2)
+2025-02-18: Opened 2, Closed 2, Weekly: £953, Monthly: £10284
+COMPOUNDING: Capital grew from £33324 to £33504 (+£180)
+COMPOUNDING: Capital grew from £33504 to £33505 (+£2)
+2025-02-19: Opened 2, Closed 2, Weekly: £1135, Monthly: £10466
+COMPOUNDING: Capital grew from £33505 to £33685 (+£180)
+COMPOUNDING: Capital grew from £33685 to £33687 (+£2)
+2025-02-20: Opened 2, Closed 2, Weekly: £1317, Monthly: £10647
+COMPOUNDING: Capital grew from £33687 to £33867 (+£180)
+COMPOUNDING: Capital grew from £33867 to £33868 (+£2)
+2025-02-21: Opened 2, Closed 2, Weekly: £1498, Monthly: £10829
+COMPOUNDING: Capital grew from £33868 to £33981 (+£113)
+COMPOUNDING: Capital grew from £33981 to £33982 (+£1)
+2025-02-24: Opened 2, Closed 2, Weekly: £114, Monthly: £10942
+COMPOUNDING: Capital grew from £33982 to £34094 (+£113)
+COMPOUNDING: Capital grew from £34094 to £34095 (+£1)
+2025-02-25: Opened 2, Closed 2, Weekly: £227, Monthly: £11056
+COMPOUNDING: Capital grew from £34095 to £34208 (+£113)
+COMPOUNDING: Capital grew from £34208 to £34209 (+£1)
+2025-02-26: Opened 2, Closed 2, Weekly: £341, Monthly: £11170
+COMPOUNDING: Capital grew from £34209 to £34322 (+£113)
+COMPOUNDING: Capital grew from £34322 to £34323 (+£1)
+2025-02-27: Opened 2, Closed 2, Weekly: £454, Monthly: £11283
+COMPOUNDING: Capital grew from £34323 to £34435 (+£113)
+COMPOUNDING: Capital grew from £34435 to £34436 (+£1)
+2025-02-28: Opened 2, Closed 2, Weekly: £568, Monthly: £11397
+COMPOUNDING: Capital grew from £34436 to £34549 (+£113)
+COMPOUNDING: Capital grew from £34549 to £34550 (+£1)
+2025-03-03: Opened 2, Closed 2, Weekly: £114, Monthly: £11510
+COMPOUNDING: Capital grew from £34550 to £34662 (+£113)
+COMPOUNDING: Capital grew from £34662 to £34663 (+£1)
+2025-03-04: Opened 2, Closed 2, Weekly: £227, Monthly: £11624
+COMPOUNDING: Capital grew from £34663 to £34776 (+£113)
+COMPOUNDING: Capital grew from £34776 to £34777 (+£1)
+2025-03-05: Opened 2, Closed 2, Weekly: £341, Monthly: £11737
+COMPOUNDING: Capital grew from £34777 to £34889 (+£113)
+COMPOUNDING: Capital grew from £34889 to £34890 (+£1)
+2025-03-06: Opened 2, Closed 2, Weekly: £454, Monthly: £11851
+COMPOUNDING: Capital grew from £34890 to £35003 (+£113)
+COMPOUNDING: Capital grew from £35003 to £35004 (+£1)
+2025-03-07: Opened 2, Closed 2, Weekly: £568, Monthly: £11964
+COMPOUNDING: Capital grew from £35004 to £35116 (+£113)
+COMPOUNDING: Capital grew from £35116 to £35117 (+£1)
+2025-03-10: Opened 2, Closed 2, Weekly: £114, Monthly: £12078
+COMPOUNDING: Capital grew from £35117 to £35230 (+£113)
+COMPOUNDING: Capital grew from £35230 to £35231 (+£1)
+2025-03-11: Opened 2, Closed 2, Weekly: £227, Monthly: £12191
+COMPOUNDING: Capital grew from £35231 to £35343 (+£113)
+COMPOUNDING: Capital grew from £35343 to £35344 (+£1)
+2025-03-12: Opened 2, Closed 2, Weekly: £341, Monthly: £12305
+COMPOUNDING: Capital grew from £35344 to £35457 (+£113)
+COMPOUNDING: Capital grew from £35457 to £35458 (+£1)
+2025-03-13: Opened 2, Closed 2, Weekly: £454, Monthly: £12418
+COMPOUNDING: Capital grew from £35458 to £35570 (+£113)
+COMPOUNDING: Capital grew from £35570 to £35571 (+£1)
+2025-03-14: Opened 2, Closed 2, Weekly: £568, Monthly: £12532
+COMPOUNDING: Capital grew from £35571 to £35684 (+£113)
+COMPOUNDING: Capital grew from £35684 to £35685 (+£1)
+2025-03-17: Opened 2, Closed 2, Weekly: £114, Monthly: £12646
+COMPOUNDING: Capital grew from £35685 to £35798 (+£113)
+COMPOUNDING: Capital grew from £35798 to £35799 (+£1)
+2025-03-18: Opened 2, Closed 2, Weekly: £227, Monthly: £12759
+COMPOUNDING: Capital grew from £35799 to £35911 (+£113)
+COMPOUNDING: Capital grew from £35911 to £35912 (+£1)
+2025-03-19: Opened 2, Closed 2, Weekly: £341, Monthly: £12873
+COMPOUNDING: Capital grew from £35912 to £36025 (+£113)
+COMPOUNDING: Capital grew from £36025 to £36026 (+£1)
+2025-03-20: Opened 2, Closed 2, Weekly: £454, Monthly: £12986
+COMPOUNDING: Capital grew from £36026 to £36138 (+£113)
+COMPOUNDING: Capital grew from £36138 to £36139 (+£1)
+2025-03-21: Opened 2, Closed 2, Weekly: £568, Monthly: £13100
+COMPOUNDING: Capital grew from £36139 to £36252 (+£113)
+COMPOUNDING: Capital grew from £36252 to £36253 (+£1)
+2025-03-24: Opened 2, Closed 2, Weekly: £114, Monthly: £13213
+COMPOUNDING: Capital grew from £36253 to £36365 (+£113)
+COMPOUNDING: Capital grew from £36365 to £36366 (+£1)
+2025-03-25: Opened 2, Closed 2, Weekly: £227, Monthly: £13327
+COMPOUNDING: Capital grew from £36366 to £36479 (+£113)
+COMPOUNDING: Capital grew from £36479 to £36480 (+£1)
+2025-03-26: Opened 2, Closed 2, Weekly: £341, Monthly: £13440
+COMPOUNDING: Capital grew from £36480 to £36592 (+£113)
+COMPOUNDING: Capital grew from £36592 to £36593 (+£1)
+2025-03-27: Opened 2, Closed 2, Weekly: £454, Monthly: £13554
+COMPOUNDING: Capital grew from £36593 to £36706 (+£113)
+COMPOUNDING: Capital grew from £36706 to £36707 (+£1)
+2025-03-28: Opened 2, Closed 2, Weekly: £568, Monthly: £13667
+COMPOUNDING: Capital grew from £36707 to £36819 (+£113)
+COMPOUNDING: Capital grew from £36819 to £36820 (+£1)
+2025-03-31: Opened 2, Closed 2, Weekly: £114, Monthly: £13781
+COMPOUNDING: Capital grew from £36820 to £36933 (+£113)
+COMPOUNDING: Capital grew from £36933 to £36934 (+£1)
+2025-04-01: Opened 2, Closed 2, Weekly: £227, Monthly: £114
+COMPOUNDING: Capital grew from £36934 to £37046 (+£113)
+COMPOUNDING: Capital grew from £37046 to £37048 (+£1)
+2025-04-02: Opened 2, Closed 2, Weekly: £341, Monthly: £227
+COMPOUNDING: Capital grew from £37048 to £37160 (+£113)
+COMPOUNDING: Capital grew from £37160 to £37161 (+£1)
+2025-04-03: Opened 2, Closed 2, Weekly: £454, Monthly: £341
+COMPOUNDING: Capital grew from £37161 to £37229 (+£68)
+COMPOUNDING: Capital grew from £37229 to £37229 (+£1)
+2025-04-04: Opened 2, Closed 2, Weekly: £522, Monthly: £409
+COMPOUNDING: Capital grew from £37229 to £37297 (+£68)
+COMPOUNDING: Capital grew from £37297 to £37297 (+£1)
+2025-04-07: Opened 2, Closed 2, Weekly: £68, Monthly: £477
+COMPOUNDING: Capital grew from £37297 to £37410 (+£113)
+COMPOUNDING: Capital grew from £37410 to £37411 (+£1)
+2025-04-08: Opened 2, Closed 2, Weekly: £182, Monthly: £590
+COMPOUNDING: Capital grew from £37411 to £37478 (+£68)
+COMPOUNDING: Capital grew from £37478 to £37479 (+£1)
+2025-04-09: Opened 2, Closed 2, Weekly: £250, Monthly: £658
+COMPOUNDING: Capital grew from £37479 to £37591 (+£113)
+COMPOUNDING: Capital grew from £37591 to £37592 (+£1)
+2025-04-10: Opened 2, Closed 2, Weekly: £363, Monthly: £772
+COMPOUNDING: Capital grew from £37592 to £37705 (+£113)
+COMPOUNDING: Capital grew from £37705 to £37706 (+£1)
+2025-04-11: Opened 2, Closed 2, Weekly: £477, Monthly: £885
+COMPOUNDING: Capital grew from £37706 to £37818 (+£113)
+COMPOUNDING: Capital grew from £37818 to £37819 (+£1)
+2025-04-14: Opened 2, Closed 2, Weekly: £114, Monthly: £999
+COMPOUNDING: Capital grew from £37819 to £37932 (+£113)
+COMPOUNDING: Capital grew from £37932 to £37933 (+£1)
+2025-04-15: Opened 2, Closed 2, Weekly: £227, Monthly: £1113
+COMPOUNDING: Capital grew from £37933 to £38045 (+£113)
+COMPOUNDING: Capital grew from £38045 to £38046 (+£1)
+2025-04-21: Opened 2, Closed 2, Weekly: £114, Monthly: £1226
+COMPOUNDING: Capital grew from £38046 to £38159 (+£113)
+COMPOUNDING: Capital grew from £38159 to £38160 (+£1)
+2025-04-22: Opened 2, Closed 2, Weekly: £227, Monthly: £1340
+COMPOUNDING: Capital grew from £38160 to £38273 (+£113)
+COMPOUNDING: Capital grew from £38273 to £38274 (+£1)
+2025-04-23: Opened 2, Closed 2, Weekly: £341, Monthly: £1453
+COMPOUNDING: Capital grew from £38274 to £38386 (+£113)
+COMPOUNDING: Capital grew from £38386 to £38387 (+£1)
+2025-04-24: Opened 2, Closed 2, Weekly: £454, Monthly: £1567
+COMPOUNDING: Capital grew from £38387 to £38500 (+£113)
+COMPOUNDING: Capital grew from £38500 to £38501 (+£1)
+2025-04-25: Opened 2, Closed 2, Weekly: £568, Monthly: £1680
+COMPOUNDING: Capital grew from £38501 to £38613 (+£113)
+COMPOUNDING: Capital grew from £38613 to £38614 (+£1)
+2025-04-28: Opened 2, Closed 2, Weekly: £114, Monthly: £1794
+COMPOUNDING: Capital grew from £38614 to £38727 (+£113)
+COMPOUNDING: Capital grew from £38727 to £38728 (+£1)
+2025-04-29: Opened 2, Closed 2, Weekly: £227, Monthly: £1907
+COMPOUNDING: Capital grew from £38728 to £38840 (+£113)
+COMPOUNDING: Capital grew from £38840 to £38841 (+£1)
+2025-04-30: Opened 2, Closed 2, Weekly: £341, Monthly: £2021
+COMPOUNDING: Capital grew from £38841 to £38954 (+£113)
+COMPOUNDING: Capital grew from £38954 to £38955 (+£1)
+2025-05-01: Opened 2, Closed 2, Weekly: £454, Monthly: £114
+COMPOUNDING: Capital grew from £38955 to £39067 (+£113)
+COMPOUNDING: Capital grew from £39067 to £39068 (+£1)
+2025-05-02: Opened 2, Closed 2, Weekly: £568, Monthly: £227
+COMPOUNDING: Capital grew from £39068 to £39181 (+£113)
+COMPOUNDING: Capital grew from £39181 to £39182 (+£1)
+2025-05-05: Opened 2, Closed 2, Weekly: £114, Monthly: £341
+COMPOUNDING: Capital grew from £39182 to £39294 (+£113)
+COMPOUNDING: Capital grew from £39294 to £39295 (+£1)
+2025-05-06: Opened 2, Closed 2, Weekly: £227, Monthly: £454
+COMPOUNDING: Capital grew from £39295 to £39408 (+£113)
+COMPOUNDING: Capital grew from £39408 to £39409 (+£1)
+2025-05-07: Opened 2, Closed 2, Weekly: £341, Monthly: £568
+COMPOUNDING: Capital grew from £39409 to £39521 (+£113)
+COMPOUNDING: Capital grew from £39521 to £39522 (+£1)
+2025-05-08: Opened 2, Closed 2, Weekly: £454, Monthly: £681
+COMPOUNDING: Capital grew from £39522 to £39635 (+£113)
+COMPOUNDING: Capital grew from £39635 to £39636 (+£1)
+2025-05-09: Opened 2, Closed 2, Weekly: £568, Monthly: £795
+COMPOUNDING: Capital grew from £39636 to £39749 (+£113)
+COMPOUNDING: Capital grew from £39749 to £39750 (+£1)
+2025-05-12: Opened 2, Closed 2, Weekly: £114, Monthly: £908
+COMPOUNDING: Capital grew from £39750 to £39862 (+£113)
+COMPOUNDING: Capital grew from £39862 to £39863 (+£1)
+2025-05-13: Opened 2, Closed 2, Weekly: £227, Monthly: £1022
+COMPOUNDING: Capital grew from £39863 to £39976 (+£113)
+COMPOUNDING: Capital grew from £39976 to £39977 (+£1)
+2025-05-14: Opened 2, Closed 2, Weekly: £341, Monthly: £1135
+COMPOUNDING: Capital grew from £39977 to £40089 (+£113)
+COMPOUNDING: Capital grew from £40089 to £40090 (+£1)
+2025-05-15: Opened 2, Closed 2, Weekly: £454, Monthly: £1249
+COMPOUNDING: Capital grew from £40090 to £40203 (+£113)
+COMPOUNDING: Capital grew from £40203 to £40204 (+£1)
+2025-05-16: Opened 2, Closed 2, Weekly: £568, Monthly: £1362
+COMPOUNDING: Capital grew from £40204 to £40316 (+£113)
+COMPOUNDING: Capital grew from £40316 to £40317 (+£1)
+2025-05-19: Opened 2, Closed 2, Weekly: £114, Monthly: £1476
+COMPOUNDING: Capital grew from £40317 to £40430 (+£113)
+COMPOUNDING: Capital grew from £40430 to £40431 (+£1)
+2025-05-20: Opened 2, Closed 2, Weekly: £227, Monthly: £1590
+COMPOUNDING: Capital grew from £40431 to £40543 (+£113)
+COMPOUNDING: Capital grew from £40543 to £40544 (+£1)
+2025-05-21: Opened 2, Closed 2, Weekly: £341, Monthly: £1703
+COMPOUNDING: Capital grew from £40544 to £40657 (+£113)
+COMPOUNDING: Capital grew from £40657 to £40658 (+£1)
+2025-05-22: Opened 2, Closed 2, Weekly: £454, Monthly: £1817
+COMPOUNDING: Capital grew from £40658 to £40770 (+£113)
+COMPOUNDING: Capital grew from £40770 to £40771 (+£1)
+2025-05-23: Opened 2, Closed 2, Weekly: £568, Monthly: £1930
+COMPOUNDING: Capital grew from £40771 to £40884 (+£113)
+COMPOUNDING: Capital grew from £40884 to £40885 (+£1)
+2025-05-27: Opened 2, Closed 2, Weekly: £681, Monthly: £2044
+COMPOUNDING: Capital grew from £40885 to £40997 (+£113)
+COMPOUNDING: Capital grew from £40997 to £40999 (+£1)
+2025-05-28: Opened 2, Closed 2, Weekly: £795, Monthly: £2157
+COMPOUNDING: Capital grew from £40999 to £41111 (+£113)
+COMPOUNDING: Capital grew from £41111 to £41112 (+£1)
+2025-05-29: Opened 2, Closed 2, Weekly: £908, Monthly: £2271
+COMPOUNDING: Capital grew from £41112 to £41225 (+£113)
+COMPOUNDING: Capital grew from £41225 to £41226 (+£1)
+2025-05-30: Opened 2, Closed 2, Weekly: £1022, Monthly: £2384
+COMPOUNDING: Capital grew from £41226 to £41338 (+£113)
+COMPOUNDING: Capital grew from £41338 to £41339 (+£1)
+2025-06-02: Opened 2, Closed 2, Weekly: £114, Monthly: £2498
+COMPOUNDING: Capital grew from £41339 to £41452 (+£113)
+COMPOUNDING: Capital grew from £41452 to £41453 (+£1)
+2025-06-03: Opened 2, Closed 2, Weekly: £227, Monthly: £2611
+COMPOUNDING: Capital grew from £41453 to £41565 (+£113)
+COMPOUNDING: Capital grew from £41565 to £41566 (+£1)
+2025-06-04: Opened 2, Closed 2, Weekly: £341, Monthly: £2725
+COMPOUNDING: Capital grew from £41566 to £41679 (+£113)
+COMPOUNDING: Capital grew from £41679 to £41680 (+£1)
+2025-06-05: Opened 2, Closed 2, Weekly: £454, Monthly: £2839
+COMPOUNDING: Capital grew from £41680 to £41792 (+£113)
+COMPOUNDING: Capital grew from £41792 to £41793 (+£1)
+2025-06-06: Opened 2, Closed 2, Weekly: £568, Monthly: £2952
+COMPOUNDING: Capital grew from £41793 to £41906 (+£113)
+COMPOUNDING: Capital grew from £41906 to £41907 (+£1)
+2025-06-09: Opened 2, Closed 2, Weekly: £114, Monthly: £3066
+COMPOUNDING: Capital grew from £41907 to £42019 (+£113)
+COMPOUNDING: Capital grew from £42019 to £42020 (+£1)
+2025-06-10: Opened 2, Closed 2, Weekly: £227, Monthly: £3179
+COMPOUNDING: Capital grew from £42020 to £42133 (+£113)
+COMPOUNDING: Capital grew from £42133 to £42134 (+£1)
+2025-06-11: Opened 2, Closed 2, Weekly: £341, Monthly: £3293
+COMPOUNDING: Capital grew from £42134 to £42246 (+£113)
+COMPOUNDING: Capital grew from £42246 to £42247 (+£1)
+2025-06-12: Opened 2, Closed 2, Weekly: £454, Monthly: £3406
+COMPOUNDING: Capital grew from £42247 to £42360 (+£113)
+COMPOUNDING: Capital grew from £42360 to £42361 (+£1)
+2025-06-13: Opened 2, Closed 2, Weekly: £568, Monthly: £3520
+COMPOUNDING: Capital grew from £42361 to £42473 (+£113)
+COMPOUNDING: Capital grew from £42473 to £42475 (+£1)
+2025-06-16: Opened 2, Closed 2, Weekly: £114, Monthly: £3633
+COMPOUNDING: Capital grew from £42475 to £42587 (+£113)
+COMPOUNDING: Capital grew from £42587 to £42588 (+£1)
+2025-06-17: Opened 2, Closed 2, Weekly: £227, Monthly: £3747
+COMPOUNDING: Capital grew from £42588 to £42701 (+£113)
+COMPOUNDING: Capital grew from £42701 to £42702 (+£1)
+2025-06-18: Opened 2, Closed 2, Weekly: £341, Monthly: £3860
+COMPOUNDING: Capital grew from £42702 to £42882 (+£180)
+COMPOUNDING: Capital grew from £42882 to £42883 (+£2)
+2025-06-20: Opened 2, Closed 2, Weekly: £522, Monthly: £4042
+COMPOUNDING: Capital grew from £42883 to £43063 (+£180)
+COMPOUNDING: Capital grew from £43063 to £43065 (+£2)
+2025-06-23: Opened 2, Closed 2, Weekly: £182, Monthly: £4224
+COMPOUNDING: Capital grew from £43065 to £43245 (+£180)
+COMPOUNDING: Capital grew from £43245 to £43246 (+£2)
+2025-06-24: Opened 2, Closed 2, Weekly: £363, Monthly: £4405
+COMPOUNDING: Capital grew from £43246 to £43426 (+£180)
+COMPOUNDING: Capital grew from £43426 to £43428 (+£2)
+2025-06-25: Opened 2, Closed 2, Weekly: £545, Monthly: £4587
+COMPOUNDING: Capital grew from £43428 to £43608 (+£180)
+COMPOUNDING: Capital grew from £43608 to £43610 (+£2)
+2025-06-26: Opened 2, Closed 2, Weekly: £726, Monthly: £4768
+COMPOUNDING: Capital grew from £43610 to £43790 (+£180)
+COMPOUNDING: Capital grew from £43790 to £43791 (+£2)
+2025-06-27: Opened 2, Closed 2, Weekly: £908, Monthly: £4950
+COMPOUNDING: Capital grew from £43791 to £43971 (+£180)
+COMPOUNDING: Capital grew from £43971 to £43973 (+£2)
+2025-06-30: Opened 2, Closed 2, Weekly: £182, Monthly: £5132
+COMPOUNDING: Capital grew from £43973 to £44153 (+£180)
+COMPOUNDING: Capital grew from £44153 to £44154 (+£2)
+2025-07-01: Opened 2, Closed 2, Weekly: £363, Monthly: £182
+COMPOUNDING: Capital grew from £44154 to £44334 (+£180)
+COMPOUNDING: Capital grew from £44334 to £44336 (+£2)
+2025-07-02: Opened 2, Closed 2, Weekly: £545, Monthly: £363
+COMPOUNDING: Capital grew from £44336 to £44516 (+£180)
+COMPOUNDING: Capital grew from £44516 to £44518 (+£2)
+2025-07-03: Opened 2, Closed 2, Weekly: £726, Monthly: £545
+COMPOUNDING: Capital grew from £44518 to £44698 (+£180)
+COMPOUNDING: Capital grew from £44698 to £44699 (+£2)
+2025-07-07: Opened 2, Closed 2, Weekly: £182, Monthly: £726
+COMPOUNDING: Capital grew from £44699 to £44879 (+£180)
+COMPOUNDING: Capital grew from £44879 to £44881 (+£2)
+2025-07-08: Opened 2, Closed 2, Weekly: £363, Monthly: £908
+COMPOUNDING: Capital grew from £44881 to £45061 (+£180)
+COMPOUNDING: Capital grew from £45061 to £45062 (+£2)
+2025-07-09: Opened 2, Closed 2, Weekly: £545, Monthly: £1090
+COMPOUNDING: Capital grew from £45062 to £45242 (+£180)
+COMPOUNDING: Capital grew from £45242 to £45244 (+£2)
+2025-07-10: Opened 2, Closed 2, Weekly: £726, Monthly: £1271
+COMPOUNDING: Capital grew from £45244 to £45424 (+£180)
+COMPOUNDING: Capital grew from £45424 to £45426 (+£2)
+2025-07-11: Opened 2, Closed 2, Weekly: £908, Monthly: £1453
+COMPOUNDING: Capital grew from £45426 to £45606 (+£180)
+COMPOUNDING: Capital grew from £45606 to £45607 (+£2)
+2025-07-14: Opened 2, Closed 2, Weekly: £182, Monthly: £1634
+COMPOUNDING: Capital grew from £45607 to £45787 (+£180)
+COMPOUNDING: Capital grew from £45787 to £45789 (+£2)
+2025-07-15: Opened 2, Closed 2, Weekly: £363, Monthly: £1816
+COMPOUNDING: Capital grew from £45789 to £45967 (+£178)
+2025-07-21: Opened 2, Closed 1, Weekly: £182, Monthly: £1998
+COMPOUNDING: Capital grew from £45967 to £46145 (+£178)
+2025-07-22: Opened 2, Closed 1, Weekly: £363, Monthly: £2179
+COMPOUNDING: Capital grew from £46145 to £46323 (+£178)
+2025-07-23: Opened 2, Closed 1, Weekly: £545, Monthly: £2361
+COMPOUNDING: Capital grew from £46323 to £46502 (+£178)
+2025-07-24: Opened 2, Closed 1, Weekly: £726, Monthly: £2542
+=== PERFORMANCE REGRESSION VALIDATION ===
+ROI: Expected 489.00%, Got 365.02%, Diff: 123.984% - FAIL
+Total P&L: Expected £48892, Got £36502, Diff: £12390 - FAIL
+Trade Count: Expected 870, Got 734 - FAIL
+=== OVERALL RESULT: PERFORMANCE REGRESSION DETECTED ===
+⚠️  REGRESSION ALERT: Performance regression detected! Strategy modifications have negatively impacted results.
+Please review recent changes for potential performance impacts.
+=== STARTING REGRESSION TEST SUITE ===
+Testing Position Creation...
+Testing Capital Compounding...
+Testing Early Closing Logic...
+Testing VIX Regime Adjustments...
+Testing Performance Metrics...
+Testing Risk Management...
+=== REGRESSION TEST SUITE COMPLETED - FAILURES DETECTED ===
+Regression Errors:
+  - No baseline found for test: position_creation_count
+  - No baseline found for test: capital_compounding_growth
+  - No baseline found for test: early_closing_success_rate
+  - No baseline found for test: vix_regime_response
+  - No baseline found for test: performance_total_positions
+  - No baseline found for test: performance_total_pnl
+  - No baseline found for test: risk_max_contract_size
+  - No baseline found for test: risk_max_capital_allocation
+
+============================================================
+GENERATING COMPREHENSIVE PERFORMANCE ANALYTICS
+============================================================
+📊 PERFORMANCE SUMMARY
+   Starting Capital: £10000
+   Final Capital: £46502
+   Total P&L: £36502
+   Total ROI: 365.0%
+   Total Positions: 734
+
+Excel workbook generated: out\20250907\1533_sofired_backtest.xlsx
+
+Backtest complete! Results saved to out/ directory.
+Total P&L: £36502
+Final Capital: £46502
+Total ROI: 365.0%
+Total positions traded: 734
+Timestamp: 20250907_1533

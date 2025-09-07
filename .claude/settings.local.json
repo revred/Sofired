@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "Bash(git commit:*)",
+      "Bash(dir:*)",
+      "WebFetch(domain:www.youtube.com)",
+      "Bash(dotnet clean:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

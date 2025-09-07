@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "CNapI82iJXI=",
+  "dgSpecHash": "M76XH3XXTC8=",
   "success": true,
   "projectFilePath": "C:\\code\\Sofired\\src\\Sofired.Backtester\\Sofired.Backtester.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\revanur\\.nuget\\packages\\documentformat.openxml\\3.0.1\\documentformat.openxml.3.0.1.nupkg.sha512",
+    "C:\\Users\\revanur\\.nuget\\packages\\documentformat.openxml.framework\\3.0.1\\documentformat.openxml.framework.3.0.1.nupkg.sha512",
+    "C:\\Users\\revanur\\.nuget\\packages\\system.io.packaging\\8.0.0\\system.io.packaging.8.0.0.nupkg.sha512"
+  ],
   "logs": []
 }
