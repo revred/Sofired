@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Sofired.Core;
+using Stroll.Theta.Client;
 
 namespace Sofired.Backtester
 {
@@ -33,8 +35,9 @@ namespace Sofired.Backtester
             Console.WriteLine($"Portfolio Capital: ${portfolioCapital:N0}");
             Console.WriteLine("=".PadRight(60, '='));
             
-            // Initialize ThetaData client and options engine
-            var thetaClient = new ThetaDataClient(_host, _port);
+            // Initialize ThetaData client and options engine with new MCP client
+            var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+            var thetaClient = new ThetaClient(httpClient);
             var realOptionsEngine = new RealOptionsEngine(thetaClient);
             
             // Initialize multi-symbol portfolio engine
@@ -250,17 +253,20 @@ namespace Sofired.Backtester
         /// <summary>
         /// Load VIX data for volatility analysis
         /// </summary>
-        private async Task<Dictionary<DateTime, decimal>> LoadVixData(ThetaDataClient thetaClient, DateTime startDate, DateTime endDate)
+        private async Task<Dictionary<DateTime, decimal>> LoadVixData(ThetaClient thetaClient, DateTime startDate, DateTime endDate)
         {
             Console.WriteLine("Loading VIX data for volatility analysis...");
             
             try
             {
-                var vixData = await thetaClient.GetVixData(startDate, endDate);
-                if (vixData.Count > 0)
+                // Use MarketDataService for VIX data fetching
+                using var marketDataService = new MarketDataService();
+                var vixBars = await marketDataService.GetDailyBarsAsync("VIX", startDate, endDate);
+                
+                if (vixBars.Count > 0)
                 {
-                    Console.WriteLine($"✅ Loaded {vixData.Count} real VIX data points");
-                    return vixData.ToDictionary(v => v.Date, v => v.Close);
+                    Console.WriteLine($"✅ Loaded {vixBars.Count} real VIX data points");
+                    return vixBars.ToDictionary(v => v.Date, v => v.Close);
                 }
             }
             catch (Exception ex)
@@ -268,9 +274,8 @@ namespace Sofired.Backtester
                 Console.WriteLine($"❌ VIX data error: {ex.Message}");
             }
             
-            // Generate synthetic VIX data
-            Console.WriteLine("⚠️ Using synthetic VIX data");
-            return GenerateSyntheticVixData(startDate, endDate);
+            Console.WriteLine("❌ CRITICAL: No real VIX data available. System requires real market data.");
+            return new Dictionary<DateTime, decimal>();
         }
         
         /// <summary>

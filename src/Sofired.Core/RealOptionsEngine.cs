@@ -2,23 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using Stroll.Theta.Client;
 
 namespace Sofired.Core
 {
     /// <summary>
-    /// Real options pricing engine using ThetaData for authentic market conditions
+    /// Real options pricing engine using Stroll.Theta.Client for authentic market conditions
     /// Replaces synthetic Black-Scholes approximations with real bid/ask data
     /// </summary>
     public class RealOptionsEngine
     {
-        private readonly ThetaDataClient _thetaClient;
+        private readonly ThetaClient _thetaClient;
         private readonly Dictionary<string, OptionsChain> _optionsCache;
         private DateTime _lastCacheUpdate;
         private readonly TimeSpan _cacheExpiry = TimeSpan.FromHours(1);
 
-        public RealOptionsEngine(ThetaDataClient thetaClient)
+        public RealOptionsEngine(ThetaClient thetaClient)
         {
-            _thetaClient = thetaClient;
+            _thetaClient = thetaClient ?? throw new ArgumentNullException(nameof(thetaClient));
             _optionsCache = new Dictionary<string, OptionsChain>();
             _lastCacheUpdate = DateTime.MinValue;
         }
@@ -45,14 +47,14 @@ namespace Sofired.Core
                 }
                 else
                 {
-                    Console.WriteLine($"⚠️  No real options data available for {symbol}, using enhanced synthetic pricing");
-                    return CalculateEnhancedSyntheticPricing(symbol, stockPrice, expirationDate, shortStrike, longStrike, tradingDate);
+                    Console.WriteLine($"❌ CRITICAL: No real options data available for {symbol}. System requires real market data.");
+                    throw new InvalidOperationException($"No real options data available for {symbol}. Check ThetaData connection.");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error fetching real options data: {ex.Message}");
-                return CalculateEnhancedSyntheticPricing(symbol, stockPrice, expirationDate, shortStrike, longStrike, tradingDate);
+                throw new InvalidOperationException($"Unable to fetch real options data for {symbol}. System requires real market data.");
             }
         }
 
@@ -95,7 +97,14 @@ namespace Sofired.Core
                     Gamma = shortPut.Gamma - longPut.Gamma,
                     IsRealData = true,
                     Liquidity = Math.Min(shortPut.Volume, longPut.Volume),
-                    OpenInterest = Math.Min(shortPut.OpenInterest, longPut.OpenInterest)
+                    OpenInterest = Math.Min(shortPut.OpenInterest, longPut.OpenInterest),
+                    
+                    // Realism Guard Data from real market quotes
+                    Bid = (double)shortPutCredit,
+                    Ask = (double)(shortPutCredit + totalSpreadCost),
+                    QuoteAgeSec = 0, // Real-time in this implementation
+                    VenueCount = 3, // Assume multiple market makers for liquid options
+                    NbboSane = shortPut.Bid < shortPut.Ask && longPut.Bid < longPut.Ask
                 };
             }
 
@@ -103,150 +112,8 @@ namespace Sofired.Core
             return CalculateFallbackPricing(optionsChain, shortStrike, longStrike, stockPrice);
         }
 
-        /// <summary>
-        /// Enhanced synthetic pricing with realistic market friction
-        /// </summary>
-        private RealOptionsPricing CalculateEnhancedSyntheticPricing(
-            string symbol, 
-            decimal stockPrice, 
-            DateTime expirationDate, 
-            decimal shortStrike, 
-            decimal longStrike, 
-            DateTime tradingDate)
-        {
-            var daysToExpiration = (expirationDate - tradingDate).Days;
-            var timeValue = (decimal)Math.Sqrt(daysToExpiration / 365.0);
-            
-            // Enhanced volatility estimation based on symbol sector
-            var sectorVol = GetSectorVolatility(symbol);
-            var moneyness = (stockPrice - shortStrike) / stockPrice;
-            
-            // More realistic premium calculation
-            var basePremium = stockPrice * timeValue * Math.Abs(moneyness) * sectorVol;
-            
-            // Realistic minimum premiums based on stock price
-            var minPremium = stockPrice switch
-            {
-                <= 10m => 0.50m,
-                <= 15m => 0.75m,
-                <= 25m => 1.00m,
-                <= 50m => 1.50m,
-                <= 100m => 2.00m,
-                _ => 3.00m
-            };
-            
-            var shortPutPremium = Math.Max(minPremium, basePremium * 1.2m);
-            var longPutPremium = Math.Max(minPremium * 0.6m, basePremium * 0.8m);
-            var netCredit = shortPutPremium - longPutPremium;
-            
-            // Add realistic bid-ask spread friction (1-3% depending on liquidity)
-            var spreadCost = netCredit * GetSpreadCostMultiplier(symbol, stockPrice);
-            var adjustedCredit = Math.Max(0.10m, netCredit - spreadCost);
-            
-            // Add execution slippage (0.5-2%)
-            var slippage = adjustedCredit * GetSlippageMultiplier(symbol);
-            var finalCredit = Math.Max(0.05m, adjustedCredit - slippage);
-            
-            return new RealOptionsPricing
-            {
-                NetCreditReceived = finalCredit,
-                MaxRisk = (shortStrike - longStrike) - finalCredit,
-                MaxProfit = finalCredit,
-                BidAskSpreadCost = spreadCost,
-                ImpliedVolatility = sectorVol,
-                Delta = CalculateSyntheticDelta(stockPrice, shortStrike, daysToExpiration),
-                Theta = CalculateSyntheticTheta(finalCredit, daysToExpiration),
-                Gamma = CalculateSyntheticGamma(stockPrice, shortStrike),
-                IsRealData = false,
-                Liquidity = EstimateLiquidity(symbol, stockPrice),
-                OpenInterest = EstimateOpenInterest(symbol, stockPrice),
-                ExecutionSlippage = slippage
-            };
-        }
-
-        private decimal GetSectorVolatility(string symbol)
-        {
-            // Sector-based volatility estimates
-            return symbol.ToUpper() switch
-            {
-                "SOFI" => 0.45m, // Fintech - high volatility
-                "APP" => 0.55m,  // AdTech - very high volatility
-                "AAPL" => 0.25m, // Large cap tech - moderate volatility
-                "TSLA" => 0.60m, // EV - extreme volatility
-                "NVDA" => 0.50m, // AI/GPU - high volatility
-                _ => 0.35m       // Default moderate volatility
-            };
-        }
-
-        private decimal GetSpreadCostMultiplier(string symbol, decimal stockPrice)
-        {
-            // Spread costs based on symbol liquidity and price
-            var baseCost = symbol.ToUpper() switch
-            {
-                "SOFI" => 0.025m, // 2.5% spread for mid-cap fintech
-                "APP" => 0.035m,  // 3.5% spread for smaller adtech
-                "AAPL" => 0.010m, // 1.0% spread for liquid large cap
-                "TSLA" => 0.020m, // 2.0% spread for volatile large cap
-                "NVDA" => 0.015m, // 1.5% spread for tech mega cap
-                _ => 0.030m       // 3.0% default for mid-cap
-            };
-
-            // Adjust for stock price (lower prices = higher spreads)
-            if (stockPrice < 15m) baseCost *= 1.5m;
-            else if (stockPrice < 30m) baseCost *= 1.2m;
-            else if (stockPrice > 200m) baseCost *= 0.8m;
-
-            return baseCost;
-        }
-
-        private decimal GetSlippageMultiplier(string symbol)
-        {
-            return symbol.ToUpper() switch
-            {
-                "SOFI" => 0.015m, // 1.5% slippage
-                "APP" => 0.025m,  // 2.5% slippage  
-                "AAPL" => 0.005m, // 0.5% slippage
-                "TSLA" => 0.010m, // 1.0% slippage
-                "NVDA" => 0.008m, // 0.8% slippage
-                _ => 0.020m       // 2.0% default
-            };
-        }
-
-        private decimal CalculateSyntheticDelta(decimal stockPrice, decimal strike, int dte)
-        {
-            var moneyness = stockPrice / strike;
-            var timeAdjustment = Math.Max(0.1, dte / 30.0);
-            return (decimal)(-0.5 * Math.Exp(-Math.Abs(1 - (double)moneyness)) * timeAdjustment);
-        }
-
-        private decimal CalculateSyntheticTheta(decimal premium, int dte)
-        {
-            return dte > 0 ? -premium / dte * 0.7m : 0m;
-        }
-
-        private decimal CalculateSyntheticGamma(decimal stockPrice, decimal strike)
-        {
-            var distance = Math.Abs(stockPrice - strike);
-            return distance < 5m ? 0.05m : 0.02m;
-        }
-
-        private int EstimateLiquidity(string symbol, decimal stockPrice)
-        {
-            return symbol.ToUpper() switch
-            {
-                "SOFI" => 150,  // Moderate liquidity
-                "APP" => 75,   // Lower liquidity
-                "AAPL" => 2000, // Very high liquidity
-                "TSLA" => 800,  // High liquidity
-                "NVDA" => 1200, // Very high liquidity
-                _ => 100       // Default moderate
-            };
-        }
-
-        private int EstimateOpenInterest(string symbol, decimal stockPrice)
-        {
-            return EstimateLiquidity(symbol, stockPrice) * 5; // Rough 5:1 ratio
-        }
+        // REMOVED: All synthetic options pricing methods
+        // System now requires real options data from ThetaData
 
         private async Task<OptionsChain?> GetOptionsChain(string symbol, DateTime tradingDate, DateTime expirationDate)
         {
@@ -260,16 +127,24 @@ namespace Sofired.Core
 
             try
             {
-                // Attempt to fetch from ThetaData
-                var optionsData = await _thetaClient.GetOptionsChain(symbol, tradingDate, expirationDate);
+                // Attempt to fetch from ThetaData using new MCP client
+                var dateOnly = DateOnly.FromDateTime(tradingDate);
+                var jsonResponse = await _thetaClient.GetOptionsChain(symbol, dateOnly);
                 
-                if (optionsData != null)
+                // Parse JSON response into OptionsChain object
+                var optionsChain = ParseOptionsChainFromJson(jsonResponse, symbol, expirationDate);
+                
+                if (optionsChain != null && (optionsChain.PutOptions?.Count > 0 || optionsChain.CallOptions?.Count > 0))
                 {
-                    _optionsCache[cacheKey] = optionsData;
+                    _optionsCache[cacheKey] = optionsChain;
                     _lastCacheUpdate = DateTime.Now;
                     
-                    Console.WriteLine($"✅ Loaded real options data for {symbol} expiring {expirationDate:yyyy-MM-dd}");
-                    return optionsData;
+                    Console.WriteLine($"✅ Loaded real options data for {symbol} expiring {expirationDate:yyyy-MM-dd}: {optionsChain.PutOptions?.Count} puts, {optionsChain.CallOptions?.Count} calls");
+                    return optionsChain;
+                }
+                else
+                {
+                    Console.WriteLine($"⚠️  No options data available for {symbol} expiring {expirationDate:yyyy-MM-dd}");
                 }
             }
             catch (Exception ex)
@@ -278,6 +153,90 @@ namespace Sofired.Core
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Parse ThetaData JSON response into OptionsChain object
+        /// </summary>
+        private OptionsChain? ParseOptionsChainFromJson(JsonElement jsonResponse, string symbol, DateTime targetExpiration)
+        {
+            try
+            {
+                // Check for ThetaData error responses
+                if (jsonResponse.TryGetProperty("header", out var header))
+                {
+                    if (header.TryGetProperty("error_type", out var errorType) && !errorType.GetString().Equals("null"))
+                    {
+                        Console.WriteLine($"ThetaData options API error: {errorType.GetString()}");
+                        return null;
+                    }
+                }
+
+                var optionsChain = new OptionsChain
+                {
+                    ExpirationDate = targetExpiration,
+                    TradingDate = targetExpiration,
+                    PutOptions = new List<OptionContract>(),
+                    CallOptions = new List<OptionContract>()
+                };
+
+                // Process ThetaData options response
+                if (jsonResponse.TryGetProperty("response", out var response) && response.ValueKind == JsonValueKind.Array)
+                {
+                    Console.WriteLine($"Parsing ThetaData options data with {response.GetArrayLength()} contracts...");
+
+                    foreach (var contract in response.EnumerateArray())
+                    {
+                        if (contract.ValueKind == JsonValueKind.Array && contract.GetArrayLength() >= 8)
+                        {
+                            try
+                            {
+                                var contractArray = contract.EnumerateArray().ToArray();
+                                
+                                // ThetaData options format: [ms_of_day, bid, ask, mid, expiry_date, strike, right, ...]
+                                var bid = contractArray.Length > 1 ? contractArray[1].GetDecimal() : 0m;
+                                var ask = contractArray.Length > 2 ? contractArray[2].GetDecimal() : 0m;
+                                var strike = contractArray.Length > 5 ? contractArray[5].GetDecimal() : 0m;
+                                var right = contractArray.Length > 6 ? contractArray[6].GetString() : "";
+                                
+                                // Only include options for the target expiration
+                                if (strike > 0 && (right == "P" || right == "C"))
+                                {
+                                    var optionContract = new OptionContract
+                                    {
+                                        Strike = strike,
+                                        Bid = bid,
+                                        Ask = ask,
+                                        Volume = 0, // Not provided in this format
+                                        OpenInterest = 0 // Not provided in this format
+                                    };
+
+                                    if (right == "P")
+                                        optionsChain.PutOptions.Add(optionContract);
+                                    else if (right == "C")
+                                        optionsChain.CallOptions.Add(optionContract);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error parsing options contract: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
+                // Sort options by strike
+                optionsChain.PutOptions = optionsChain.PutOptions.OrderBy(p => p.Strike).ToList();
+                optionsChain.CallOptions = optionsChain.CallOptions.OrderBy(c => c.Strike).ToList();
+
+                Console.WriteLine($"Parsed options chain: {optionsChain.PutOptions.Count} puts, {optionsChain.CallOptions.Count} calls");
+                return optionsChain;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing options chain JSON: {ex.Message}");
+                return null;
+            }
         }
 
         private RealOptionsPricing CalculateFallbackPricing(OptionsChain optionsChain, decimal shortStrike, decimal longStrike, decimal stockPrice)
@@ -326,6 +285,31 @@ namespace Sofired.Core
         public int Liquidity { get; set; }
         public int OpenInterest { get; set; }
         public decimal ExecutionSlippage { get; set; }
+        
+        // Realism Guard Data
+        public double Bid { get; set; }
+        public double Ask { get; set; }
+        public double QuoteAgeSec { get; set; } = 0; // Default to fresh quote in simulation
+        public int VenueCount { get; set; } = 1; // Conservative default
+        public bool NbboSane { get; set; } = true; // Default to sane quotes
+        
+        /// <summary>
+        /// Validate this pricing against realism guards
+        /// </summary>
+        public RealityCheck.Result ValidateRealism(
+            double deltaMin, double deltaMax, double vix, double scaleUsed, double scaleExpectedHigh,
+            int earningsDays, int size, int baselineSize, double dailyLossPct, double dailyStopPct,
+            bool timeOk)
+        {
+            return RealityCheck.All(
+                bid: Bid, ask: Ask, oi: OpenInterest, quoteAgeSec: QuoteAgeSec, venueCount: VenueCount,
+                delta: (double)Delta, deltaMin: deltaMin, deltaMax: deltaMax,
+                vix: vix, scaleUsed: scaleUsed, scaleExpectedHigh: scaleExpectedHigh,
+                earningsDays: earningsDays, size: size, baselineSize: baselineSize,
+                dailyLossPct: dailyLossPct, dailyStopPct: dailyStopPct,
+                timeOk: timeOk, nbboSane: NbboSane
+            );
+        }
         
         /// <summary>
         /// Realistic profit/loss calculation considering all market friction

@@ -12,7 +12,9 @@
       "Bash(dotnet add package:*)",
       "Bash(copy:*)",
       "Bash(dotnet script:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(curl:*)",
+      "Read(//c/code/Stroll.Theta/**)"
     ],
     "deny": [],
     "ask": []

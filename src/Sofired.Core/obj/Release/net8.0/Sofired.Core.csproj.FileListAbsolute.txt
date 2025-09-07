@@ -10,3 +10,4 @@ C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\refint\Sofired.Core.dll
 C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.pdb
 C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\ref\Sofired.Core.dll
 C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.sourcelink.json
+C:\code\Sofired\src\Sofired.Core\obj\Release\net8.0\Sofired.Core.csproj.AssemblyReference.cache

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sofired.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+817968060fa6ba88ec780e08c78e82ea0b32eadc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c792b162b4f608c0f6cf9af5124d6125f974fb2b")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sofired.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sofired.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,21 +10,14 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Sofired.Core;
+using Stroll.Theta.Client;
 
 class Program
 {
-    static readonly string Host = Environment.GetEnvironmentVariable("THETA_HOST") ?? "http://localhost";
-    static readonly string Port = Environment.GetEnvironmentVariable("THETA_PORT") ?? "25510";
-    static readonly string ApiKey = Environment.GetEnvironmentVariable("THETA_API_KEY") ?? "";
     static readonly string OutDir = Environment.GetEnvironmentVariable("SOFIRED_OUT") ?? "out";
-
-    static readonly HttpClient Http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
 
     static async Task Main(string[] args)
     {
-        if (!string.IsNullOrEmpty(ApiKey))
-            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
-
         Directory.CreateDirectory(OutDir);
         
         // Handle command-line arguments for different operations
@@ -101,20 +93,29 @@ class Program
             CapitalAllocationPerTrade = 0.15m // 15% capital per trade (aggressive)
         };
         
-        // Initialize ThetaData client for real market data validation
-        var thetaClient = new ThetaDataClient(Host, Port);
-        
-        // PHASE 1: Initialize Real Options Pricing Engine
+        // PHASE 1: Initialize Real Options Pricing Engine with MarketDataService
         Console.WriteLine("🔥 PHASE 1: Initializing Real Options Pricing Engine");
+        using var marketDataService = new MarketDataService();
+        
+        // Check ThetaData connection
+        if (!await marketDataService.IsConnectedAsync())
+        {
+            Console.WriteLine("❌ ThetaData Terminal is not connected. Please ensure ThetaData Terminal is running.");
+            return;
+        }
+        
+        // Create ThetaClient for options pricing
+        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+        var thetaClient = new ThetaClient(httpClient);
         var realOptionsEngine = new RealOptionsEngine(thetaClient);
         
         // Create trading engine with real options pricing
-        var engine = new TradingEngine(config, null, realOptionsEngine);
+        var engine = new TradingEngine(config, null, realOptionsEngine, symbol);
         var sessions = new List<TradingSession>();
         
-        // Attempt to get real VIX data
+        // Attempt to get real VIX data using MarketDataService
         Console.WriteLine("Fetching real VIX data for accurate volatility analysis...");
-        var realVixData = await ThetaDataIntegration.GetRealVixLevels(thetaClient, startDate, endDate);
+        var realVixData = await GetRealVixData(marketDataService, startDate, endDate);
         
         if (realVixData.Count > 0)
         {
@@ -206,7 +207,7 @@ class Program
         
         // Generate comprehensive results with timestamp
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
-        await GenerateResults(bars, sessions, engine, timestamp, startDate, endDate);
+        await GenerateResults(bars, sessions, engine, timestamp, startDate, endDate, symbol);
         
         Console.WriteLine($"\nBacktest complete! Results saved to {OutDir}/ directory.");
         Console.WriteLine($"Total P&L: £{engine.GetTotalPnL():F0}");
@@ -240,21 +241,21 @@ class Program
         return Math.Max(10m, Math.Min(50m, volatility)); // Cap between 10-50
     }
     
-    static Task GenerateResults(List<DailyBar> bars, List<TradingSession> sessions, TradingEngine engine, string timestamp, DateTime start, DateTime end)
+    static Task GenerateResults(List<DailyBar> bars, List<TradingSession> sessions, TradingEngine engine, string timestamp, DateTime start, DateTime end, string symbol)
     {
         // Create comprehensive Excel workbook with multiple sheets
         var fileTime = DateTime.Now.ToString("HHmm");
         var timeSpan = $"{start:yyyyMMdd}_{end:yyyyMMdd}";
-        var excelPath = Path.Combine(OutDir, "20250907", $"{fileTime}_SOFI_{timeSpan}.xlsx");
+        var excelPath = Path.Combine(OutDir, "20250907", $"{fileTime}_{symbol}_{timeSpan}.xlsx");
         Directory.CreateDirectory(Path.GetDirectoryName(excelPath));
         
-        CreateExcelWorkbook(excelPath, bars, sessions, engine, timestamp);
+        CreateExcelWorkbook(excelPath, bars, sessions, engine, timestamp, symbol);
         
         Console.WriteLine($"\nExcel workbook generated: {excelPath}");
         return Task.CompletedTask;
     }
     
-    static void CreateExcelWorkbook(string filePath, List<DailyBar> bars, List<TradingSession> sessions, TradingEngine engine, string timestamp)
+    static void CreateExcelWorkbook(string filePath, List<DailyBar> bars, List<TradingSession> sessions, TradingEngine engine, string timestamp, string symbol)
     {
         using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
         var workbookPart = document.AddWorkbookPart();
@@ -270,7 +271,7 @@ class Program
         var coveredCalls = closedPositions.Where(p => p.Strategy == StrategyType.CoveredCall).ToList();
         
         // Sheet 1: Executive Summary
-        CreateSummarySheet(workbookPart, sheets, "Executive_Summary", engine, putSpreads, coveredCalls, timestamp, 1);
+        CreateSummarySheet(workbookPart, sheets, "Executive_Summary", engine, putSpreads, coveredCalls, timestamp, symbol, 1);
         
         // Sheet 2: All Trades Ledger (with strategy cross-references)
         CreateTradesLedgerSheet(workbookPart, sheets, "All_Trades", allPositions, 2);
@@ -282,7 +283,7 @@ class Program
         CreateStrategySheet(workbookPart, sheets, "CoveredCalls", coveredCalls, "Secondary Strategy - 12Δ Covered Calls", 4);
         
         // Sheet 5: Daily Price Data
-        CreatePriceDataSheet(workbookPart, sheets, "Daily_Prices", bars, 5);
+        CreatePriceDataSheet(workbookPart, sheets, "Daily_Prices", bars, symbol, 5);
         
         // Sheet 6: Monthly Performance
         CreateMonthlyPerformanceSheet(workbookPart, sheets, "Monthly_Performance", sessions, 6);
@@ -293,7 +294,7 @@ class Program
         workbookPart.Workbook.Save();
     }
     
-    static void CreateSummarySheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, TradingEngine engine, List<Position> putSpreads, List<Position> coveredCalls, string timestamp, uint sheetId)
+    static void CreateSummarySheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, TradingEngine engine, List<Position> putSpreads, List<Position> coveredCalls, string timestamp, string symbol, uint sheetId)
     {
         var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
         var sheetData = new SheetData();
@@ -309,7 +310,7 @@ class Program
         var totalTrades = putSpreads.Count + coveredCalls.Count;
         
         // Title row
-        AddRow(sheetData, "SOFI Options Strategy - Executive Summary", $"Generated: {timestamp}");
+        AddRow(sheetData, $"{symbol} Options Strategy - Executive Summary", $"Generated: {timestamp}");
         AddEmptyRow(sheetData);
         
         // Performance summary
@@ -329,7 +330,7 @@ class Program
         AddRow(sheetData, "All Trades Ledger", "=HYPERLINK(\"#All_Trades!A1\",\"→ View All Trades\")");
         AddRow(sheetData, "Monthly Performance", "=HYPERLINK(\"#Monthly_Performance!A1\",\"→ Monthly P&L\")");
         AddRow(sheetData, "Risk Analysis", "=HYPERLINK(\"#Risk_Analysis!A1\",\"→ Risk Metrics\")");
-        AddRow(sheetData, "Price Data", "=HYPERLINK(\"#Daily_Prices!A1\",\"→ SOFI Prices\")");
+        AddRow(sheetData, "Price Data", $"=HYPERLINK(\"#Daily_Prices!A1\",\"→ {symbol} Prices\")");
     }
     
     static void CreateTradesLedgerSheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, List<Position> allPositions, uint sheetId)
@@ -434,7 +435,7 @@ class Program
         }
     }
     
-    static void CreatePriceDataSheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, List<DailyBar> bars, uint sheetId)
+    static void CreatePriceDataSheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, List<DailyBar> bars, string symbol, uint sheetId)
     {
         var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
         var sheetData = new SheetData();
@@ -443,7 +444,7 @@ class Program
         var sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = sheetId, Name = sheetName };
         sheets.Append(sheet);
         
-        AddRow(sheetData, "SOFI Daily Price Data");
+        AddRow(sheetData, $"{symbol} Daily Price Data");
         AddRow(sheetData, "=HYPERLINK(\"#Executive_Summary!A1\",\"← Back to Summary\")");
         AddEmptyRow(sheetData);
         
@@ -551,259 +552,45 @@ class Program
 
     static async Task<List<DailyBar>> GetDailyBars(string symbol, DateTime start, DateTime end)
     {
-        try
-        {
-            Console.WriteLine($"Attempting to fetch {symbol} data from ThetaData Terminal...");
-            
-            // ThetaData REST API endpoint for historical stock data
-            var startDateStr = start.ToString("yyyyMMdd");
-            var endDateStr = end.ToString("yyyyMMdd");
-            var url = $"{Host}:{Port}/v2/hist/stock/ohlc?root={symbol}&start_date={startDateStr}&end_date={endDateStr}&ivl=86400000&rth=true";
-            
-            Console.WriteLine($"ThetaData request: {url}");
-            
-            var response = await Http.GetAsync(url);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"ThetaData response received ({responseContent.Length} chars)");
-                Console.WriteLine($"Raw response sample: {responseContent.Substring(0, Math.Min(500, responseContent.Length))}...");
-                
-                var bars = ParseThetaDataResponse(responseContent, symbol);
-                
-                if (bars.Count > 0)
-                {
-                    Console.WriteLine($"✅ Successfully loaded {bars.Count} real market bars for {symbol}");
-                    Console.WriteLine($"   Date range: {bars.First().Date:yyyy-MM-dd} to {bars.Last().Date:yyyy-MM-dd}");
-                    Console.WriteLine($"   Price range: ${bars.Min(b => b.Close):F2} - ${bars.Max(b => b.Close):F2}");
-                    return bars.OrderBy(r => r.Date).ToList();
-                }
-                else
-                {
-                    Console.WriteLine("⚠️  No bars parsed from ThetaData response");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"❌ ThetaData API error: {response.StatusCode} - {response.ReasonPhrase}");
-                var errorContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"   Error details: {errorContent}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ ThetaData API exception: {ex.Message}");
-        }
-        
-        Console.WriteLine("🔄 Falling back to synthetic data generation...");
-        return GenerateRealisticSofiData(start, end);
+        using var marketDataService = new MarketDataService();
+        return await marketDataService.GetDailyBarsAsync(symbol, start, end);
     }
 
-    static List<DailyBar> ParseThetaDataResponse(string jsonResponse, string symbol)
+    
+    // REMOVED: All synthetic data generation methods
+    // System now requires real market data to operate
+
+    static async Task<Dictionary<DateTime, decimal>> GetRealVixData(MarketDataService marketDataService, DateTime startDate, DateTime endDate)
     {
-        var bars = new List<DailyBar>();
+        var vixData = new Dictionary<DateTime, decimal>();
         
         try
         {
-            using var doc = JsonDocument.Parse(jsonResponse);
-            var root = doc.RootElement;
+            var vixBars = await marketDataService.GetDailyBarsAsync("VIX", startDate, endDate);
             
-            // Handle ThetaData error responses
-            if (root.TryGetProperty("header", out var header))
+            foreach (var bar in vixBars)
             {
-                if (header.TryGetProperty("error_type", out var errorType) && !errorType.GetString().Equals("null"))
-                {
-                    Console.WriteLine($"ThetaData API error: {errorType.GetString()}");
-                    return bars;
-                }
+                vixData[bar.Date] = bar.Close;
             }
             
-            // ThetaData array format: {"response": [[ms_of_day,open,high,low,close,volume,count,date], ...]}
-            if (root.TryGetProperty("response", out var response) && response.ValueKind == JsonValueKind.Array)
+            if (vixData.Count > 0)
             {
-                Console.WriteLine($"Parsing ThetaData array format with {response.GetArrayLength()} data points...");
-                
-                foreach (var dataPoint in response.EnumerateArray())
-                {
-                    if (dataPoint.ValueKind == JsonValueKind.Array && dataPoint.GetArrayLength() >= 8)
-                    {
-                        try
-                        {
-                            var dataArray = dataPoint.EnumerateArray().ToArray();
-                            
-                            // Format: [ms_of_day,open,high,low,close,volume,count,date]
-                            var msOfDay = dataArray[0].GetInt64();
-                            var open = dataArray[1].GetDecimal();
-                            var high = dataArray[2].GetDecimal();
-                            var low = dataArray[3].GetDecimal();
-                            var close = dataArray[4].GetDecimal();
-                            var volume = dataArray[5].GetInt64();
-                            var dateInt = dataArray[7].GetInt32();
-                            
-                            // Convert YYYYMMDD integer to DateTime
-                            var dateString = dateInt.ToString();
-                            var year = int.Parse(dateString.Substring(0, 4));
-                            var month = int.Parse(dateString.Substring(4, 2));
-                            var day = int.Parse(dateString.Substring(6, 2));
-                            var date = new DateTime(year, month, day);
-                            
-                            // Log first few data points for validation
-                            if (bars.Count < 3)
-                            {
-                                Console.WriteLine($"Sample data point {bars.Count + 1}: {date:yyyy-MM-dd} O:{open} H:{high} L:{low} C:{close} V:{volume}");
-                            }
-                            
-                            bars.Add(new DailyBar(
-                                Date: date,
-                                Open: open,
-                                High: high,
-                                Low: low,
-                                Close: close,
-                                Volume: volume
-                            ));
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing data point: {ex.Message}");
-                        }
-                    }
-                }
-                
-                Console.WriteLine($"✅ Successfully parsed {bars.Count} real market bars for {symbol}");
-                
-                if (bars.Count > 0)
-                {
-                    var firstBar = bars.First();
-                    var lastBar = bars.Last();
-                    Console.WriteLine($"📊 Real SOFI data: {firstBar.Date:yyyy-MM-dd} (${firstBar.Close:F2}) → {lastBar.Date:yyyy-MM-dd} (${lastBar.Close:F2})");
-                    Console.WriteLine($"📈 Price change: ${lastBar.Close - firstBar.Close:F2} ({((lastBar.Close - firstBar.Close) / firstBar.Close):P1})");
-                }
+                Console.WriteLine($"✅ Loaded {vixData.Count} real VIX data points");
             }
             else
             {
-                Console.WriteLine($"❌ Unexpected ThetaData response format");
-                Console.WriteLine($"Raw response: {jsonResponse.Substring(0, Math.Min(500, jsonResponse.Length))}");
+                Console.WriteLine("⚠️  No VIX data available, using default value of 20");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error parsing ThetaData response: {ex.Message}");
-            if (jsonResponse.Length < 1000)
-            {
-                Console.WriteLine($"Full response: {jsonResponse}");
-            }
+            Console.WriteLine($"⚠️  Failed to load VIX data: {ex.Message}, using default value of 20");
         }
         
-        return bars.OrderBy(b => b.Date).ToList();
-    }
-    
-    static List<DailyBar> GenerateRealisticSofiData(DateTime start, DateTime end)
-    {
-        var bars = new List<DailyBar>();
-        var random = new Random(42); // Fixed seed for reproducible results
-        var currentPrice = 11.63m; // Starting price from March 2024
-        var date = start;
-        
-        Console.WriteLine($"Generating synthetic SOFI data from {start:yyyy-MM-dd} to {end:yyyy-MM-dd}");
-        
-        while (date <= end)
-        {
-            // Skip weekends
-            if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
-            {
-                // TWEAK 1: Add intraday timestamps for entry (10:10-10:30) and exit (15:20-15:35) timing
-                var entryTime = date.Date.Add(TimeSpan.FromHours(10).Add(TimeSpan.FromMinutes(random.Next(10, 31))));
-                var exitTime = date.Date.Add(TimeSpan.FromHours(15).Add(TimeSpan.FromMinutes(random.Next(20, 36))));
-                
-                // Generate realistic daily volatility (0.5% to 5% daily moves)
-                var dailyReturn = (decimal)(random.NextGaussian() * 0.025); // 2.5% daily volatility
-                
-                // Add trend - SOFI generally went up over this period
-                var trendFactor = (decimal)(date - start).Days / (decimal)(end - start).Days;
-                var trendReturn = trendFactor * 0.002m; // 0.2% daily upward trend
-                
-                // Apply earnings volatility boosts
-                if (IsEarningsWeek(date))
-                {
-                    dailyReturn *= 2.0m; // Double volatility during earnings
-                }
-                
-                var totalReturn = dailyReturn + trendReturn;
-                var newPrice = currentPrice * (1 + totalReturn);
-                
-                // Generate OHLC based on the close
-                var high = newPrice * (1 + (decimal)Math.Abs(random.NextGaussian() * 0.01));
-                var low = newPrice * (1 - (decimal)Math.Abs(random.NextGaussian() * 0.01));
-                var open = currentPrice * (1 + (decimal)(random.NextGaussian() * 0.005));
-                
-                // Ensure OHLC relationships are valid
-                high = Math.Max(high, Math.Max(open, newPrice));
-                low = Math.Min(low, Math.Min(open, newPrice));
-                
-                var volume = (long)(15000000 + random.Next(-5000000, 10000000));
-                volume = Math.Max(volume, 5000000);
-                
-                bars.Add(new DailyBar(date, open, high, low, newPrice, volume));
-                currentPrice = newPrice;
-            }
-            date = date.AddDays(1);
-        }
-        
-        // Ensure we end up around the target price (25.60) by end date
-        if (bars.Any())
-        {
-            var finalBar = bars.Last();
-            var targetPrice = 25.60m;
-            var adjustment = targetPrice / finalBar.Close;
-            
-            // Apply adjustment to all bars proportionally
-            for (int i = 0; i < bars.Count; i++)
-            {
-                var progressFactor = (decimal)i / (bars.Count - 1);
-                var adjustmentFactor = 1 + (adjustment - 1) * progressFactor;
-                
-                var bar = bars[i];
-                bars[i] = bar with
-                {
-                    Open = bar.Open * adjustmentFactor,
-                    High = bar.High * adjustmentFactor,
-                    Low = bar.Low * adjustmentFactor,
-                    Close = bar.Close * adjustmentFactor
-                };
-            }
-        }
-        
-        Console.WriteLine($"Generated {bars.Count} trading days, price range: {bars.First().Close:F2} - {bars.Last().Close:F2}");
-        return bars;
-    }
-    
-    static bool IsEarningsWeek(DateTime date)
-    {
-        // SOFI typically reports earnings in late January, April, July, and October
-        var month = date.Month;
-        var day = date.Day;
-        
-        return (month == 1 && day >= 25) ||  // Late January
-               (month == 4 && day >= 22 && day <= 30) ||  // Late April  
-               (month == 7 && day >= 22 && day <= 30) ||  // Late July
-               (month == 10 && day >= 22 && day <= 30);   // Late October
+        return vixData;
     }
 
     static long ToUnixMs(DateTime dt) => new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero).ToUnixTimeMilliseconds();
 }
 
-public static class RandomExtensions
-{
-    public static double NextGaussian(this Random random, double mean = 0.0, double stdDev = 1.0)
-    {
-        // Box-Muller transformation
-        var u1 = 1.0 - random.NextDouble(); // uniform(0,1] random doubles
-        var u2 = 1.0 - random.NextDouble();
-        var randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); // random normal(0,1)
-        return mean + stdDev * randStdNormal; // random normal(mean,stdDev^2)
-    }
-    
-    // Regression test method temporarily removed due to build issues
-    // Will be re-implemented after configuration system is stable
-}
+// REMOVED: RandomExtensions class - was only used for synthetic data generation

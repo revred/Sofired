@@ -1,7 +1,7 @@
 {
   "version": 3,
   "targets": {
-    "net8.0": {
+    "net9.0": {
       "DocumentFormat.OpenXml/3.0.1": {
         "type": "package",
         "dependencies": {
@@ -65,8 +65,9 @@
       },
       "Sofired.Core/1.0.0": {
         "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
+        "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
+          "Stroll.Theta.Client": "1.0.0",
           "YamlDotNet": "16.3.0"
         },
         "compile": {
@@ -74,6 +75,16 @@
         },
         "runtime": {
           "bin/placeholder/Sofired.Core.dll": {}
+        }
+      },
+      "Stroll.Theta.Client/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/Stroll.Theta.Client.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Stroll.Theta.Client.dll": {}
         }
       }
     }
@@ -181,10 +192,15 @@
       "type": "project",
       "path": "../Sofired.Core/Sofired.Core.csproj",
       "msbuildProject": "../Sofired.Core/Sofired.Core.csproj"
+    },
+    "Stroll.Theta.Client/1.0.0": {
+      "type": "project",
+      "path": "../../../Stroll.Theta/src/Stroll.Theta.Client/Stroll.Theta.Client.csproj",
+      "msbuildProject": "../../../Stroll.Theta/src/Stroll.Theta.Client/Stroll.Theta.Client.csproj"
     }
   },
   "projectFileDependencyGroups": {
-    "net8.0": [
+    "net9.0": [
       "DocumentFormat.OpenXml >= 3.0.1",
       "Sofired.Core >= 1.0.0"
     ]
@@ -211,7 +227,7 @@
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
-        "net8.0"
+        "net9.0"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
@@ -219,8 +235,8 @@
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "projectReferences": {
             "C:\\code\\Sofired\\src\\Sofired.Core\\Sofired.Core.csproj": {
               "projectPath": "C:\\code\\Sofired\\src\\Sofired.Core\\Sofired.Core.csproj"
@@ -241,8 +257,8 @@
       "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
-      "net8.0": {
-        "targetAlias": "net8.0",
+      "net9.0": {
+        "targetAlias": "net9.0",
         "dependencies": {
           "DocumentFormat.OpenXml": {
             "target": "Package",

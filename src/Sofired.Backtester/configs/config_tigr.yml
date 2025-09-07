@@ -1,0 +1,102 @@
+# TIGR-specific trading configuration
+# Symbol: TIGR - UP Fintech Holding Limited (Chinese fintech/brokerage)
+symbol: "TIGR"
+
+# Account Settings
+account:
+  equity: 45000
+  shares: 1100
+  baselineQty: 6
+
+# TIGR-specific Trading Parameters
+trading:
+  # Trade execution windows (Eastern Time)
+  entry_window:
+    start: "10:00"  # TIGR-specific optimal entry time
+    end: "10:20"
+  exit_window:
+    start: "15:30"  # TIGR-specific optimal exit time  
+    end: "15:45"
+  
+  # TIGR-specific option parameters
+  options:
+    # Delta thresholds for TIGR options (slightly wider due to lower liquidity)
+    put_delta_min: -0.08    # TIGR-optimized put delta
+    put_delta_max: -0.15
+    call_delta_min: 0.08    # TIGR-optimized call delta
+    call_delta_max: 0.15
+    
+    # Days to expiration preferences
+    dte_min: 14
+    dte_max: 60
+    dte_optimal: 30         # TIGR sweet spot for premium decay
+    
+    # Strike selection (TIGR-specific)
+    strike_interval: 1.00   # TIGR typically trades in $1.00 increments
+    min_premium: 0.50       # Minimum premium worth trading for TIGR
+    max_premium: 3.00       # Maximum premium to avoid over-concentration
+
+# TIGR-specific Risk Management
+risk:
+  # Position sizing (more conservative due to ADR volatility)
+  max_position_size: 0.20   # 20% max position size for TIGR
+  capital_allocation: 0.12  # 12% capital per trade for TIGR
+  
+  # Stop loss thresholds
+  max_loss_per_trade: 0.06  # 6% max loss per trade (higher due to volatility)
+  max_portfolio_drawdown: 0.25  # 25% max drawdown
+  
+  # TIGR sector considerations
+  fintech_correlation_limit: 0.35  # Limit correlation with other fintech
+  china_adr_correlation_limit: 0.40  # Limit correlation with Chinese ADRs
+
+# TIGR-specific Market Conditions
+market:
+  # VIX thresholds for TIGR trading (more conservative)
+  vix_low: 18               # Low volatility - moderate TIGR positioning
+  vix_normal: 28            # Normal volatility - standard TIGR strategy
+  vix_high: 40              # High volatility - defensive TIGR approach
+  vix_crisis: 55            # Crisis mode - no new TIGR positions
+  
+  # TIGR-specific market events
+  earnings_blackout_days: 7  # Days before/after TIGR earnings to avoid
+  china_adr_beta: 1.5       # TIGR's typical beta vs market (higher due to ADR status)
+
+# Strategy Configuration
+strategy:
+  # Dual strategy weights for TIGR
+  put_credit_spread_weight: 0.70    # 70% PCS for TIGR's growth potential
+  covered_call_weight: 0.30         # 30% covered calls
+  
+  # TIGR-specific timing
+  prefer_monthly_expiration: true    # TIGR has better liquidity on monthlies
+  avoid_weekly_expiration: true      # TIGR weeklies less liquid
+  
+  # Early close thresholds
+  profit_target: 0.60              # Close at 60% max profit (more aggressive)
+  early_close_dte: 10              # Close within 10 DTE regardless
+  
+# TIGR Company-Specific Factors
+company:
+  sector: "fintech"
+  market_cap: "small"              # TIGR is smaller than SOFI
+  earnings_frequency: "quarterly"
+  
+  # TIGR-specific catalysts to monitor
+  key_events:
+    - "china_market_regulations"
+    - "us_china_relations"  
+    - "adr_delisting_risks"
+    - "fintech_sector_rotation"
+    - "crypto_regulations"         # TIGR has crypto exposure
+
+# Data Sources
+data:
+  primary: "theta_data"
+  fallback: "none"                 # No synthetic fallback
+
+# Backtesting Parameters  
+backtest:
+  start_date: "2023-08-01"
+  end_date: "2025-09-05"
+  initial_capital: 10000
