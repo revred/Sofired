@@ -44,7 +44,58 @@ public class ThetaDataClient
         _port = port;
     }
 
-    public async Task<List<OptionData>> GetOptionsChain(string symbol, DateTime date, DateTime expiration)
+    public async Task<OptionsChain?> GetOptionsChain(string symbol, DateTime date, DateTime expiration)
+    {
+        var optionData = await GetOptionsChainData(symbol, date, expiration);
+        
+        if (optionData.Count == 0)
+            return null;
+            
+        return new OptionsChain
+        {
+            ExpirationDate = expiration,
+            TradingDate = date,
+            UnderlyingPrice = 15.0m, // Would need separate API call for stock price
+            CallOptions = optionData
+                .Where(o => o.OptionType == "C")
+                .Select(o => new OptionContract
+                {
+                    Strike = o.Strike,
+                    Bid = o.Bid,
+                    Ask = o.Ask,
+                    LastPrice = o.Mid,
+                    Volume = (int)o.Volume,
+                    OpenInterest = (int)o.OpenInterest,
+                    ImpliedVolatility = o.ImpliedVolatility,
+                    Delta = o.Delta,
+                    Theta = -0.05m, // Placeholder
+                    Gamma = 0.02m,  // Placeholder
+                    Vega = 0.10m,   // Placeholder
+                    IsPut = false
+                })
+                .ToList(),
+            PutOptions = optionData
+                .Where(o => o.OptionType == "P")
+                .Select(o => new OptionContract
+                {
+                    Strike = o.Strike,
+                    Bid = o.Bid,
+                    Ask = o.Ask,
+                    LastPrice = o.Mid,
+                    Volume = (int)o.Volume,
+                    OpenInterest = (int)o.OpenInterest,
+                    ImpliedVolatility = o.ImpliedVolatility,
+                    Delta = o.Delta,
+                    Theta = -0.05m, // Placeholder
+                    Gamma = 0.02m,  // Placeholder
+                    Vega = 0.10m,   // Placeholder
+                    IsPut = true
+                })
+                .ToList()
+        };
+    }
+
+    public async Task<List<OptionData>> GetOptionsChainData(string symbol, DateTime date, DateTime expiration)
     {
         try
         {
@@ -431,9 +482,9 @@ public class ThetaDataClient
     public async Task<decimal> ValidateOptionPrice(string symbol, DateTime date, DateTime expiration, 
         decimal strike, string optionType, decimal theoreticalPrice)
     {
-        var optionsChain = await GetOptionsChain(symbol, date, expiration);
+        var optionsData = await GetOptionsChainData(symbol, date, expiration);
         
-        var matchingOption = optionsChain
+        var matchingOption = optionsData
             .Where(o => o.OptionType == optionType && Math.Abs(o.Strike - strike) < 0.01m)
             .OrderBy(o => Math.Abs(o.Strike - strike))
             .FirstOrDefault();

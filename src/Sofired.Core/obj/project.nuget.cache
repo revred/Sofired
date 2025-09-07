@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "JfKBK6wW5CA=",
+  "dgSpecHash": "KLSQZLwphT0=",
   "success": true,
   "projectFilePath": "C:\\code\\Sofired\\src\\Sofired.Core\\Sofired.Core.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\revanur\\.nuget\\packages\\yamldotnet\\16.3.0\\yamldotnet.16.3.0.nupkg.sha512"
+  ],
   "logs": []
 }

@@ -284,7 +284,7 @@ public class TradeValidator
             return _optionsCache[cacheKey];
         }
 
-        var options = await _thetaClient.GetOptionsChain(symbol, date, expiration);
+        var options = await _thetaClient.GetOptionsChainData(symbol, date, expiration);
         _optionsCache[cacheKey] = options;
         return options;
     }

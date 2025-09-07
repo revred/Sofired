@@ -1,0 +1,100 @@
+# APP-specific trading configuration  
+# Symbol: APP - Digital marketing and mobile app platform
+symbol: "APP"
+
+# Account Settings (same base account)
+account:
+  equity: 45000
+  shares: 1100
+  baselineQty: 6
+
+# APP-specific Trading Parameters (different from SOFI)
+trading:
+  # Trade execution windows (Eastern Time) - APP has different optimal windows
+  entry_window:
+    start: "09:45"  # APP-specific entry - earlier than SOFI
+    end: "10:15"    # Shorter window due to lower liquidity
+  exit_window:
+    start: "15:30"  # APP-specific exit - later than SOFI
+    end: "15:50"
+  
+  # APP-specific option parameters
+  options:
+    # Delta thresholds for APP options (more conservative due to volatility)
+    put_delta_min: -0.10    # APP requires smaller delta due to higher vol
+    put_delta_max: -0.20    
+    call_delta_min: 0.10    # APP more conservative call deltas
+    call_delta_max: 0.25
+    
+    # Days to expiration preferences (different from SOFI)
+    dte_min: 14             # APP needs longer DTE due to volatility
+    dte_max: 60
+    dte_optimal: 30         # APP requires longer time for premium decay
+    
+    # Strike selection (APP-specific)
+    strike_interval: 1.00   # APP typically trades in $1.00 increments
+    min_premium: 1.25       # Higher minimum premium for APP
+    max_premium: 8.00       # Higher max premium due to volatility
+
+# APP-specific Risk Management (more conservative)
+risk:
+  # Position sizing (smaller due to higher volatility)
+  max_position_size: 0.15   # 15% max position size for APP (vs 25% SOFI)
+  capital_allocation: 0.10  # 10% capital per trade for APP (vs 15% SOFI)
+  
+  # Stop loss thresholds (tighter for APP)
+  max_loss_per_trade: 0.03  # 3% max loss per trade (vs 5% SOFI)
+  max_portfolio_drawdown: 0.15  # 15% max drawdown (vs 20% SOFI)
+  
+  # APP sector considerations
+  adtech_correlation_limit: 0.30  # Limit correlation with other adtech
+
+# APP-specific Market Conditions
+market:
+  # VIX thresholds for APP trading (more sensitive to volatility)
+  vix_low: 12               # Low volatility - aggressive APP positioning
+  vix_normal: 20            # Normal volatility - standard APP strategy  
+  vix_high: 30              # High volatility - defensive APP approach
+  vix_crisis: 40            # Crisis mode - no new APP positions
+  
+  # APP-specific market events
+  earnings_blackout_days: 7  # More days for APP earnings (vs 5 for SOFI)
+  adtech_sector_beta: 1.5    # APP's higher beta vs market (vs 1.3 SOFI)
+
+# Strategy Configuration (different mix from SOFI)
+strategy:
+  # Dual strategy weights for APP (more defensive)
+  put_credit_spread_weight: 0.40    # 40% PCS for APP (vs 60% SOFI)
+  covered_call_weight: 0.60         # 60% covered calls (vs 40% SOFI)
+  
+  # APP-specific timing
+  prefer_monthly_expiration: true    # APP also prefers monthlies
+  avoid_weekly_expiration: true      # APP avoid weeklies (vs false for SOFI)
+  
+  # Early close thresholds (more aggressive profit taking)
+  profit_target: 0.40              # Close at 40% max profit (vs 50% SOFI)
+  early_close_dte: 10              # Close within 10 DTE (vs 7 for SOFI)
+  
+# APP Company-Specific Factors
+company:
+  sector: "adtech"                 # Different sector from SOFI
+  market_cap: "mid"                # Smaller than SOFI
+  earnings_frequency: "quarterly"
+  
+  # APP-specific catalysts to monitor
+  key_events:
+    - "ios_privacy_updates"        # Apple privacy changes affect APP
+    - "digital_ad_spending"        # Core business driver
+    - "mobile_app_trends"          # Platform changes
+    - "gdpr_privacy_regulations"   # Privacy regulation impacts
+
+# Data Sources
+data:
+  primary: "theta_data"
+  fallback: "synthetic"
+  
+# Backtesting Parameters  
+backtest:
+  start_date: "2023-08-01"
+  end_date: "2025-09-05"
+  initial_capital: 10000

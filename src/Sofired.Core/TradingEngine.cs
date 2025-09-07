@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Sofired.Core;
 
@@ -20,12 +21,16 @@ public class TradingEngine
     // Reality Assessment Integration
     private readonly TradeValidator? _validator;
     private readonly RealityAuditReport _auditReport = new();
+    
+    // PHASE 1: Real Options Pricing Engine
+    private readonly RealOptionsEngine? _realOptionsEngine;
 
-    public TradingEngine(StrategyConfig config, TradeValidator? validator = null)
+    public TradingEngine(StrategyConfig config, TradeValidator? validator = null, RealOptionsEngine? realOptionsEngine = null)
     {
         _config = config;
         _currentCapital = config.InitialCapital; // Start with initial capital
         _validator = validator;
+        _realOptionsEngine = realOptionsEngine;
     }
     
     public RealityAuditReport.RealityAuditSummary? GetRealityAuditSummary()
@@ -82,7 +87,7 @@ public class TradingEngine
         };
     }
 
-    private Position CreatePutCreditSpread(DateTime date, DailyBar sofiBar, decimal vixLevel, VolRegime regime)
+    private Position CreatePutCreditSpread(DateTime date, DailyBar sofiBar, decimal vixLevel, VolRegime regime, string symbol = "SOFI")
     {
         // Entry timing window optimization
         var entryTime = date.TimeOfDay;
@@ -113,7 +118,7 @@ public class TradingEngine
         
         // Calculate position sizing based on available capital
         var capitalForTrade = _currentCapital * _config.CapitalAllocationPerTrade;
-        var premiumPerContract = EstimatePutSpreadPremium(sofiBar.Close, strikePrice, dte, vixLevel);
+        var premiumPerContract = EstimatePutSpreadPremiumSync(sofiBar.Close, strikePrice, dte, vixLevel, date, symbol);
         
         // Calculate aggressive contract size (5-50 contracts based on capital)
         var baseContracts = Math.Max(_config.MinContractSize, (int)(capitalForTrade / (premiumPerContract * 100))); // $100 per contract assumption
@@ -299,35 +304,92 @@ public class TradingEngine
         return closedToday;
     }
     
-    private decimal EstimatePutSpreadPremium(decimal stockPrice, decimal strikePrice, int dte, decimal vixLevel)
+    private async Task<decimal> EstimatePutSpreadPremium(decimal stockPrice, decimal strikePrice, int dte, decimal vixLevel, DateTime tradingDate, string symbol = "SOFI")
     {
-        // More realistic premium estimation based on ThetaData market observations
+        // PHASE 1: REAL OPTIONS PRICING ENGINE
+        if (_realOptionsEngine != null)
+        {
+            try
+            {
+                var expirationDate = tradingDate.AddDays(dte);
+                var longStrike = strikePrice - 2.5m; // 2.5 point spread
+                
+                var realPricing = await _realOptionsEngine.GetPutSpreadPricing(
+                    symbol, stockPrice, expirationDate, strikePrice, longStrike, tradingDate);
+                
+                if (realPricing.IsRealData)
+                {
+                    Console.WriteLine($"✅ Using REAL options pricing: ${realPricing.NetCreditReceived:F2} (spread cost: ${realPricing.BidAskSpreadCost:F2})");
+                    return realPricing.NetCreditReceived;
+                }
+                else
+                {
+                    Console.WriteLine($"⚠️  Using enhanced synthetic pricing: ${realPricing.NetCreditReceived:F2} (with market friction)");
+                    return realPricing.NetCreditReceived;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Real options engine error: {ex.Message}");
+            }
+        }
+        
+        // FALLBACK: Enhanced synthetic pricing (better than original hardcoded)
+        return CalculateFallbackPutSpreadPremium(stockPrice, strikePrice, dte, vixLevel);
+    }
+    
+    private decimal CalculateFallbackPutSpreadPremium(decimal stockPrice, decimal strikePrice, int dte, decimal vixLevel)
+    {
+        // Enhanced synthetic calculation with realistic market friction
         var timeValue = (decimal)Math.Sqrt(dte / 365.0) * (vixLevel / 100m);
         var moneyness = (stockPrice - strikePrice) / stockPrice;
         
-        // Base premium calculation - more realistic for 15 delta puts
-        var basePremium = stockPrice * timeValue * moneyness * 0.15m; // Increased multiplier
+        // More realistic base premium
+        var basePremium = stockPrice * timeValue * Math.Abs(moneyness) * 0.12m;
         
-        // Apply realistic minimum based on market conditions
+        // Realistic minimums with market friction
         var minPremium = stockPrice switch
         {
-            <= 10m => 0.75m,   // Lower price stocks
-            <= 15m => 1.25m,   // Mid-range 
-            <= 25m => 2.00m,   // Current SOFI range
-            <= 50m => 3.50m,   // Higher priced stocks
-            _ => 5.00m          // Very high priced
+            <= 10m => 0.50m,
+            <= 15m => 0.85m,
+            <= 25m => 1.25m,
+            <= 50m => 2.10m,
+            _ => 3.25m
         };
         
-        // Standard VIX scaling - higher VIX = higher premiums
+        // VIX scaling with dampening
         var volMultiplier = vixLevel switch
         {
-            <= 15m => 0.8m,    // Low vol environment
-            <= 25m => 1.0m,    // Normal vol
-            <= 35m => 1.4m,    // High vol
-            _ => 1.8m           // Very high vol
+            <= 15m => 0.75m,
+            <= 25m => 1.00m,
+            <= 35m => 1.25m,
+            _ => 1.50m
         };
         
-        return Math.Max(minPremium * volMultiplier, basePremium);
+        var grossPremium = Math.Max(minPremium * volMultiplier, basePremium);
+        
+        // Apply realistic market friction (bid-ask spread + slippage)
+        var marketFriction = grossPremium * 0.08m; // 8% total friction
+        
+        return Math.Max(0.25m, grossPremium - marketFriction);
+    }
+    
+    /// <summary>
+    /// Synchronous wrapper for EstimatePutSpreadPremium to avoid breaking existing code
+    /// </summary>
+    private decimal EstimatePutSpreadPremiumSync(decimal stockPrice, decimal strikePrice, int dte, decimal vixLevel, DateTime tradingDate, string symbol = "SOFI")
+    {
+        try
+        {
+            // Use Task.Run to avoid deadlocks while keeping synchronous interface
+            var task = Task.Run(async () => await EstimatePutSpreadPremium(stockPrice, strikePrice, dte, vixLevel, tradingDate, symbol));
+            return task.Result;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error in sync options pricing wrapper: {ex.Message}");
+            return CalculateFallbackPutSpreadPremium(stockPrice, strikePrice, dte, vixLevel);
+        }
     }
     
     private decimal EstimateCoveredCallPremium(decimal stockPrice, decimal strikePrice, int dte, decimal vixLevel)
@@ -368,7 +430,7 @@ public class TradingEngine
         
         if (position.Strategy == StrategyType.PutCreditSpread)
         {
-            return EstimatePutSpreadPremium(sofiBar.Close, position.StrikePrice, daysLeft, vixLevel) * 0.5m;
+            return EstimatePutSpreadPremiumSync(sofiBar.Close, position.StrikePrice, daysLeft, vixLevel, DateTime.Now, "SOFI") * 0.5m;
         }
         else
         {

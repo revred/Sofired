@@ -8,7 +8,8 @@
       "Bash(dir:*)",
       "WebFetch(domain:www.youtube.com)",
       "Bash(dotnet clean:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(dotnet add package:*)"
     ],
     "deny": [],
     "ask": []
