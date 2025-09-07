@@ -45,6 +45,17 @@ public record Position
     public string ExitReasoning { get; init; } = "";
     public decimal LeverageMultiplier { get; init; } = 1.0m;
     
+    // Phase 3: Enhanced P&L properties
+    public string Symbol { get; init; } = "";
+    public string StrategyType { get; init; } = "";
+    public decimal? ShortStrike { get; init; }
+    public decimal? LongStrike { get; init; }
+    public int Quantity { get; init; } = 1;
+    public DateTime OpenDate { get; init; }
+    public DateTime? CloseDate { get; init; }
+    public decimal? ClosePrice { get; init; }
+    public bool IsOpen { get; init; } = true;
+    
     // Performance Calculations
     public decimal ProfitPercentage => MaxProfit > 0 ? (ProfitLoss ?? 0) / MaxProfit : 0;
     public decimal ROIPercentage => CapitalAllocated > 0 ? (ProfitLoss ?? 0) / CapitalAllocated : 0;

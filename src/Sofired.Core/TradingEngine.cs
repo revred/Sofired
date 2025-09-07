@@ -24,6 +24,10 @@ public class TradingEngine
     
     // PHASE 1: Real Options Pricing Engine
     private readonly RealOptionsEngine? _realOptionsEngine;
+    
+    // PHASE 3: Enhanced P&L and Risk Management
+    private readonly EnhancedPnLEngine _pnlEngine;
+    private readonly AdvancedRiskManager _riskManager;
 
     public TradingEngine(StrategyConfig config, TradeValidator? validator = null, RealOptionsEngine? realOptionsEngine = null)
     {
@@ -31,6 +35,10 @@ public class TradingEngine
         _currentCapital = config.InitialCapital; // Start with initial capital
         _validator = validator;
         _realOptionsEngine = realOptionsEngine;
+        
+        // PHASE 3: Initialize enhanced P&L and risk management
+        _pnlEngine = new EnhancedPnLEngine();
+        _riskManager = new AdvancedRiskManager();
     }
     
     public RealityAuditReport.RealityAuditSummary? GetRealityAuditSummary()
