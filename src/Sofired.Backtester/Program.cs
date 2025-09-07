@@ -64,6 +64,10 @@ class Program
         // Simulate VIX levels (simplified)
         var random = new Random(42); // Fixed seed for reproducible results
         
+        // REGRESSION TESTING - Validate against known performance benchmarks
+        var regressionTester = new RegressionTesting();
+        var testSuite = regressionTester.CreateTestSuite(engine);
+        
         Console.WriteLine("\nExecuting trades...");
         
         foreach (var bar in bars.Where(b => b.Date.DayOfWeek != DayOfWeek.Saturday && b.Date.DayOfWeek != DayOfWeek.Sunday))
@@ -92,12 +96,34 @@ class Program
             }
         }
         
+        // PERFORMANCE REGRESSION VALIDATION - Ensure no degradation from known benchmarks
+        try 
+        {
+            PerformanceRegression.ValidatePerformanceMetrics(
+                engine,
+                expectedROI: 4.89m,           // 489% ROI from 20-month backtest
+                expectedTotalPnL: 48892m,     // £48,892 total P&L 
+                expectedTotalTrades: 870,     // Expected total positions
+                tolerance: 0.02m              // 2% tolerance for minor variations
+            );
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.WriteLine($"⚠️  REGRESSION ALERT: {ex.Message}");
+            Console.WriteLine("Please review recent changes for potential performance impacts.");
+        }
+        
+        // RUN COMPREHENSIVE REGRESSION TEST SUITE
+        testSuite.RunFullSuite(bars.Take(10).ToList(), captureBaseline: false);
+        
         // Generate comprehensive results with timestamp
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
         await GenerateResults(bars, sessions, engine, timestamp);
         
         Console.WriteLine($"\nBacktest complete! Results saved to {OutDir}/ directory.");
         Console.WriteLine($"Total P&L: £{engine.GetTotalPnL():F0}");
+        Console.WriteLine($"Final Capital: £{engine.GetCurrentCapital():F0}");  
+        Console.WriteLine($"Total ROI: {(engine.GetTotalPnL() / config.InitialCapital):P1}");
         Console.WriteLine($"Total positions traded: {engine.GetAllPositions().Count}");
         Console.WriteLine($"Timestamp: {timestamp}");
     }

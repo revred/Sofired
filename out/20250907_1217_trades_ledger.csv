@@ -1,2 +1,0 @@
-TradeID,EntryTimeUTC,Side,StrategyTag,Quantity,VIX,VolRegime,DeltaAtEntry,EarningsDate,TimingRationale,StrikeLogic,EarningsPlan,RiskQuant,MacroNotes,ExpectedValue,WinProbability,BreakevenPrice
-T0001,2025-05-14T10:15:00Z,SellCall,CC_Ladder,3,22.0,Normal,0.12,2025-07-29,10:15 window OK,Δ=0.12 band,Smaller pre-earnings,Δ/Γ caps; daily stop,FOMC neutral,32.0,0.88,24.60

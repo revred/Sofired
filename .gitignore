@@ -1,0 +1,71 @@
+# Build outputs
+**/bin/
+**/obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.json
+*.tmp
+
+# Debug/Release folders
+**/Debug/
+**/Release/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# MSBuild Binary and Structured Log
+*.binlog
+
+# .NET Core build artifacts
+**/bin/Debug/
+**/bin/Release/
+**/obj/Debug/
+**/obj/Release/
+
+# But keep the out/ folder for evolution tracking
+!out/
+!out/**
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Log files
+*.log
+
+# Local settings (but keep .claude for permissions)
+appsettings.local.json
