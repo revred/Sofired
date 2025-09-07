@@ -12,10 +12,15 @@ public class TradingEngine
     private decimal _weeklyPremium = 0m;
     private decimal _monthlyPremium = 0m;
     private DateTime _lastResetDate = DateTime.MinValue;
+    
+    // Capital Management
+    private decimal _currentCapital;
+    private int _tradeSequence = 1;
 
     public TradingEngine(StrategyConfig config)
     {
         _config = config;
+        _currentCapital = config.InitialCapital; // Start with initial capital
     }
 
     public TradingSession ProcessTradingDay(DateTime date, DailyBar sofiBar, decimal vixLevel)
@@ -67,9 +72,9 @@ public class TradingEngine
         };
     }
 
-    private Position? CreatePutCreditSpread(DateTime date, DailyBar sofiBar, decimal vixLevel, VolRegime regime)
+    private Position CreatePutCreditSpread(DateTime date, DailyBar sofiBar, decimal vixLevel, VolRegime regime)
     {
-        // TWEAK 1: Only enter positions during 10:10-10:30 AM window
+        // Entry timing window optimization
         var entryTime = date.TimeOfDay;
         if (entryTime < TimeSpan.FromHours(10).Add(TimeSpan.FromMinutes(10)) || 
             entryTime > TimeSpan.FromHours(10).Add(TimeSpan.FromMinutes(30)))
@@ -81,12 +86,12 @@ public class TradingEngine
         var strikePrice = sofiBar.Close * 0.90m; // 10% discount
         var delta = 0.15m; // 15 delta target
         
-        // TWEAK 3: Even more conservative deltas in high volatility
+        // Dynamic delta adjustment based on volatility regime
         delta = regime switch
         {
-            VolRegime.Low => 0.20m,     // More aggressive in low vol
-            VolRegime.Normal => 0.15m,  // Standard delta
-            VolRegime.High => 0.08m,    // Very conservative in high vol  
+            VolRegime.Low => 0.25m,     // Very aggressive in low vol (higher premium)
+            VolRegime.Normal => 0.15m,  // Standard delta (Jim's recommendation)
+            VolRegime.High => 0.12m,    // Still reasonably aggressive in high vol  
             _ => 0.15m
         };
         
@@ -96,13 +101,25 @@ public class TradingEngine
         // Skip if outside DTE range
         if (dte < _config.MinDTE || dte > _config.MaxDTE) return null;
         
-        // Premium estimation (simplified Black-Scholes approximation)
-        var premium = EstimatePutSpreadPremium(sofiBar.Close, strikePrice, dte, vixLevel);
-        var maxProfit = premium;
+        // Calculate position sizing based on available capital
+        var capitalForTrade = _currentCapital * _config.CapitalAllocationPerTrade;
+        var premiumPerContract = EstimatePutSpreadPremium(sofiBar.Close, strikePrice, dte, vixLevel);
+        
+        // Calculate aggressive contract size (5-50 contracts based on capital)
+        var baseContracts = Math.Max(_config.MinContractSize, (int)(capitalForTrade / (premiumPerContract * 100))); // $100 per contract assumption
+        var contractSize = Math.Min(_config.MaxContractSize, (int)(baseContracts * _config.AggressivenessMultiplier));
+        
+        var totalPremium = premiumPerContract * contractSize;
+        var maxProfit = totalPremium;
+        
+        // Generate trade reasoning
+        var marketRegime = DetermineMarketRegime(sofiBar, vixLevel);
+        var volEvent = DetermineVolatilityEvent(date, vixLevel);
+        var entryReasoning = GenerateEntryReasoning(delta, regime, marketRegime, volEvent, contractSize, vixLevel);
         
         return new Position
         {
-            Id = $"PCS_{date:yyyyMMdd}_{strikePrice:F2}",
+            Id = $"PCS_{_tradeSequence++:D4}_{date:yyyyMMdd}_{strikePrice:F2}",
             Strategy = StrategyType.PutCreditSpread,
             EntryDate = date,
             EntryPrice = sofiBar.Close,
@@ -110,19 +127,28 @@ public class TradingEngine
             Delta = delta,
             DaysToExpiration = dte,
             ExpirationDate = expirationDate,
-            PremiumCollected = premium,
+            PremiumCollected = totalPremium,
             MaxProfit = maxProfit,
             Status = PositionStatus.Open,
             VixRegime = regime,
             VixLevel = vixLevel,
             UnderlyingPrice = sofiBar.Close,
-            Notes = $"15Δ put credit spread, {regime} vol regime"
+            
+            // High-ROI position properties
+            ContractSize = contractSize,
+            CapitalAllocated = capitalForTrade,
+            MarketRegime = marketRegime,
+            VolEvent = volEvent,
+            EntryReasoning = entryReasoning,
+            LeverageMultiplier = _config.AggressivenessMultiplier,
+            
+            Notes = $"{delta:P1} put credit spread, {contractSize} contracts, {regime} vol, {marketRegime} market"
         };
     }
     
-    private Position? CreateCoveredCall(DateTime date, DailyBar sofiBar, decimal vixLevel, VolRegime regime)
+    private Position CreateCoveredCall(DateTime date, DailyBar sofiBar, decimal vixLevel, VolRegime regime)
     {
-        // TWEAK 1: Only enter positions during 10:10-10:30 AM window
+        // Entry timing window optimization
         var entryTime = date.TimeOfDay;
         if (entryTime < TimeSpan.FromHours(10).Add(TimeSpan.FromMinutes(10)) || 
             entryTime > TimeSpan.FromHours(10).Add(TimeSpan.FromMinutes(30)))
@@ -134,7 +160,7 @@ public class TradingEngine
         var strikePrice = sofiBar.Close * 1.05m; // 5% above current price
         var delta = 0.12m; // 12 delta for covered calls (more conservative)
         
-        // TWEAK 3: Even more conservative covered call deltas in high volatility
+        // Conservative covered call delta management
         delta = regime switch
         {
             VolRegime.Low => 0.15m,     // More aggressive in low vol
@@ -198,18 +224,25 @@ public class TradingEngine
             // Early closing logic: 70-90% profit target (only in exit window or expiring)
             if (profitPercentage >= _config.EarlyCloseThreshold && (inExitWindow || isExpiringToday))
             {
+                // HIGH-ROI MUTATION: Generate detailed exit reasoning
+                var exitReasoning = GenerateExitReasoning(position, profitPercentage, vixLevel);
+                
                 var closedPosition = position with
                 {
                     ExitDate = date,
                     ExitPrice = sofiBar.Close,
                     ProfitLoss = unrealizedPnL,
                     Status = PositionStatus.Closed,
-                    Notes = position.Notes + $" | Closed at {profitPercentage:P1} profit"
+                    ExitReasoning = exitReasoning,
+                    Notes = position.Notes + $" | Closed at {profitPercentage:P1} profit for ${unrealizedPnL:F0} gain"
                 };
                 
                 positionsToClose.Add(position);
                 _closedPositions.Add(closedPosition);
                 closedToday.Add(closedPosition);
+                
+                // HIGH-ROI MUTATION: Compound capital for exponential growth
+                UpdateCapitalFromClosedPosition(closedPosition);
             }
             // Don't let profits slip away - close at 95% (only in exit window or expiring)
             else if (profitPercentage >= _config.MaxCloseThreshold && (inExitWindow || isExpiringToday))
@@ -429,4 +462,114 @@ public class TradingEngine
     public List<Position> GetOpenPositions() => new(_openPositions);
     public List<Position> GetClosedPositions() => new(_closedPositions);
     public decimal GetTotalPnL() => _closedPositions.Sum(p => p.ProfitLoss ?? 0);
+    
+    // Market analysis and reasoning methods
+    private MarketRegime DetermineMarketRegime(DailyBar sofiBar, decimal vixLevel)
+    {
+        // Simple regime classification based on VIX and price action
+        return vixLevel switch
+        {
+            <= 15m when sofiBar.Close > sofiBar.Open => MarketRegime.Bull,
+            <= 15m => MarketRegime.Sideways,
+            >= 30m => MarketRegime.Volatile,
+            _ when sofiBar.Close < sofiBar.Open * 0.98m => MarketRegime.Bear,
+            _ => MarketRegime.Trending
+        };
+    }
+    
+    private VolatilityEvent DetermineVolatilityEvent(DateTime date, decimal vixLevel)
+    {
+        if (vixLevel > 35m) return VolatilityEvent.VIXSpike;
+        if (IsNearEarnings(date)) return VolatilityEvent.Earnings;
+        if (vixLevel > 25m) return VolatilityEvent.News;
+        return VolatilityEvent.None;
+    }
+    
+    private string GenerateEntryReasoning(decimal delta, VolRegime volRegime, MarketRegime marketRegime, 
+                                        VolatilityEvent volEvent, int contractSize, decimal vixLevel)
+    {
+        var reasons = new List<string>();
+        
+        // Delta reasoning
+        reasons.Add($"{delta:P1} delta for {(delta > 0.2m ? "aggressive" : delta > 0.15m ? "standard" : "conservative")} premium collection");
+        
+        // Volatility reasoning
+        var volReason = volRegime switch
+        {
+            VolRegime.Low => "Low VIX environment - aggressive sizing for higher premium capture",
+            VolRegime.Normal => "Normal VIX - balanced risk/reward following high-ROI methodology",
+            VolRegime.High => "Elevated VIX - higher premiums but managed size for risk control",
+            _ => "Standard volatility approach"
+        };
+        reasons.Add(volReason);
+        
+        // Market regime reasoning
+        var marketReason = marketRegime switch
+        {
+            MarketRegime.Bull => "Bullish regime - put spreads likely to expire worthless",
+            MarketRegime.Bear => "Bearish regime - tighter delta management required", 
+            MarketRegime.Sideways => "Range-bound market - ideal for premium collection",
+            MarketRegime.Volatile => "High volatility - premium expansion opportunity",
+            MarketRegime.Trending => "Trending market - momentum-based entry timing",
+            _ => "Standard market conditions"
+        };
+        reasons.Add(marketReason);
+        
+        // Size reasoning
+        if (contractSize >= 20)
+            reasons.Add($"Large position ({contractSize} contracts) - high conviction trade in favorable conditions");
+        else if (contractSize >= 10)
+            reasons.Add($"Medium position ({contractSize} contracts) - balanced risk/reward");
+        else
+            reasons.Add($"Conservative position ({contractSize} contracts) - risk management priority");
+        
+        // Event-based reasoning
+        if (volEvent != VolatilityEvent.None)
+            reasons.Add($"{volEvent} event - {(volEvent == VolatilityEvent.VIXSpike ? "premium expansion opportunity" : "increased caution warranted")}");
+        
+        return string.Join("; ", reasons) + $" (VIX: {vixLevel:F1})";
+    }
+    
+    private string GenerateExitReasoning(Position position, decimal profitPercentage, decimal vixLevel)
+    {
+        var reasons = new List<string>();
+        
+        if (profitPercentage >= 0.90m)
+            reasons.Add("90%+ profit achieved - taking maximum gains per high-ROI early closing strategy");
+        else if (profitPercentage >= 0.80m)
+            reasons.Add("80%+ profit achieved - optimal exit timing for ROI maximization");
+        else if (profitPercentage >= 0.70m)
+            reasons.Add("70%+ profit achieved - early closing to reduce tail risk and enable reinvestment");
+        
+        var timeRemaining = (position.ExpirationDate - DateTime.Now).Days;
+        if (timeRemaining <= 7)
+            reasons.Add("< 1 week to expiration - gamma risk management");
+        
+        if (vixLevel > position.VixLevel * 1.5m)
+            reasons.Add("VIX spike - closing profitable position to avoid volatility expansion risk");
+        
+        var roi = position.ROIPercentage;
+        if (roi > 0.5m)
+            reasons.Add($"Exceptional ROI achieved: {roi:P1} - compounding capital for exponential growth");
+        
+        return string.Join("; ", reasons) + $" (Entry VIX: {position.VixLevel:F1} → Exit VIX: {vixLevel:F1})";
+    }
+    
+    // Capital compounding mechanism
+    private void UpdateCapitalFromClosedPosition(Position position)
+    {
+        if (_config.EnableCompounding && position.ProfitLoss.HasValue)
+        {
+            var previousCapital = _currentCapital;
+            _currentCapital += position.ProfitLoss.Value;
+            
+            // Track compounding for analysis
+            if (position.ProfitLoss.Value > 0)
+            {
+                Console.WriteLine($"COMPOUNDING: Capital grew from £{previousCapital:F0} to £{_currentCapital:F0} (+£{position.ProfitLoss.Value:F0})");
+            }
+        }
+    }
+    
+    public decimal GetCurrentCapital() => _currentCapital;
 }

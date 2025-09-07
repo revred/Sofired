@@ -27,26 +27,35 @@ class Program
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
 
         Directory.CreateDirectory(OutDir);
-        var end = DateTime.Now.Date;
-        var start = end.AddMonths(-18);
+        var end = new DateTime(2025, 8, 31);
+        var start = new DateTime(2024, 1, 1);
         var bars = await GetDailyBars("SOFI", start, end);
         
         Console.WriteLine($"Running comprehensive dual-strategy backtest from {start:yyyy-MM-dd} to {end:yyyy-MM-dd}");
         Console.WriteLine($"Total trading days: {bars.Count}");
         
-        // Configure strategies with recommended parameters
+        // High-ROI Configuration - Aggressive capital deployment strategy
         var config = new StrategyConfig
         {
-            PreferredDTE = 45,
+            PreferredDTE = 45,              // Optimal 45-60 DTE range
             MinDTE = 30,
-            MaxDTE = 70,
-            TargetDelta = 0.15m,
-            EarlyCloseThreshold = 0.70m,
+            MaxDTE = 60,                    // Shorter max for faster turnover
+            TargetDelta = 0.15m,            // 15 delta target for optimal risk/reward
+            EarlyCloseThreshold = 0.70m,    // Early closing strategy (70-90%)
             OptimalCloseThreshold = 0.80m,
-            MaxCloseThreshold = 0.95m,
+            MaxCloseThreshold = 0.90m,      // Close at 90% for reinvestment
             UseDelayedRolling = true,
-            WeeklyPremiumGoal = 2000m, // £2000
-            MonthlyPremiumGoal = 8000m  // £8000
+            WeeklyPremiumGoal = 2000m,      
+            MonthlyPremiumGoal = 8000m,
+            
+            // High-ROI Parameters
+            InitialCapital = 10000m,        // £10k starting capital
+            MaxPortfolioRisk = 0.05m,       // 5% risk per trade
+            EnableCompounding = true,       // CRITICAL: Reinvest profits
+            AggressivenessMultiplier = 5.0m,// 5x more aggressive than conservative
+            MinContractSize = 5,            // Minimum 5 contracts (vs 1)
+            MaxContractSize = 50,           // Maximum 50 contracts
+            CapitalAllocationPerTrade = 0.15m // 15% capital per trade (aggressive)
         };
         
         var engine = new TradingEngine(config);
@@ -59,7 +68,7 @@ class Program
         
         foreach (var bar in bars.Where(b => b.Date.DayOfWeek != DayOfWeek.Saturday && b.Date.DayOfWeek != DayOfWeek.Sunday))
         {
-            // TWEAK 1: Simulate entry and exit times for realistic timing
+            // Simulate realistic entry and exit timing windows
             var entryTime = bar.Date.Date.Add(TimeSpan.FromHours(10).Add(TimeSpan.FromMinutes(random.Next(10, 31))));
             var exitTime = bar.Date.Date.Add(TimeSpan.FromHours(15).Add(TimeSpan.FromMinutes(random.Next(20, 36))));
             
@@ -117,55 +126,121 @@ class Program
         return Math.Max(10m, Math.Min(50m, volatility)); // Cap between 10-50
     }
     
-    static async Task GenerateResults(List<DailyBar> bars, List<TradingSession> sessions, TradingEngine engine, string timestamp)
+    static Task GenerateResults(List<DailyBar> bars, List<TradingSession> sessions, TradingEngine engine, string timestamp)
     {
-        // Generate timestamped price history CSV
-        WriteCsv(Path.Combine(OutDir, $"{timestamp}_daily_prices.csv"),
-            new[]{"Date","Open","High","Low","Close","Volume"},
-            bars.Select(b => new[]{ b.Date.ToString("yyyy-MM-dd"), $"{b.Open}", $"{b.High}", $"{b.Low}", $"{b.Close}", $"{b.Volume}" })
-        );
+        // Create comprehensive Excel workbook with multiple sheets
+        var excelPath = Path.Combine(OutDir, "20250907", $"{DateTime.Now:HHmm}_sofired_backtest.xlsx");
+        Directory.CreateDirectory(Path.GetDirectoryName(excelPath));
         
-        // Also create non-timestamped versions for compatibility
-        WriteCsv(Path.Combine(OutDir, "daily_prices.csv"),
-            new[]{"Date","Open","High","Low","Close","Volume"},
-            bars.Select(b => new[]{ b.Date.ToString("yyyy-MM-dd"), $"{b.Open}", $"{b.High}", $"{b.Low}", $"{b.Close}", $"{b.Volume}" })
-        );
+        CreateExcelWorkbook(excelPath, bars, sessions, engine, timestamp);
         
-        // Generate comprehensive backtest summary
+        Console.WriteLine($"\nExcel workbook generated: {excelPath}");
+        return Task.CompletedTask;
+    }
+    
+    static void CreateExcelWorkbook(string filePath, List<DailyBar> bars, List<TradingSession> sessions, TradingEngine engine, string timestamp)
+    {
+        using var document = SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook);
+        var workbookPart = document.AddWorkbookPart();
+        workbookPart.Workbook = new Workbook();
+        
+        var sheets = new Sheets();
+        workbookPart.Workbook.AppendChild(sheets);
+        
+        // Get data
         var allPositions = engine.GetAllPositions();
         var closedPositions = engine.GetClosedPositions();
         var putSpreads = closedPositions.Where(p => p.Strategy == StrategyType.PutCreditSpread).ToList();
         var coveredCalls = closedPositions.Where(p => p.Strategy == StrategyType.CoveredCall).ToList();
         
+        // Sheet 1: Executive Summary
+        CreateSummarySheet(workbookPart, sheets, "Executive_Summary", engine, putSpreads, coveredCalls, timestamp, 1);
+        
+        // Sheet 2: All Trades Ledger (with strategy cross-references)
+        CreateTradesLedgerSheet(workbookPart, sheets, "All_Trades", allPositions, 2);
+        
+        // Sheet 3: Put Credit Spreads Strategy Details
+        CreateStrategySheet(workbookPart, sheets, "PutCreditSpreads", putSpreads, "Primary Strategy - 15Δ Put Credit Spreads", 3);
+        
+        // Sheet 4: Covered Calls Strategy Details  
+        CreateStrategySheet(workbookPart, sheets, "CoveredCalls", coveredCalls, "Secondary Strategy - 12Δ Covered Calls", 4);
+        
+        // Sheet 5: Daily Price Data
+        CreatePriceDataSheet(workbookPart, sheets, "Daily_Prices", bars, 5);
+        
+        // Sheet 6: Monthly Performance
+        CreateMonthlyPerformanceSheet(workbookPart, sheets, "Monthly_Performance", sessions, 6);
+        
+        // Sheet 7: Risk Analysis & Exceptions
+        CreateRiskAnalysisSheet(workbookPart, sheets, "Risk_Analysis", allPositions, 7);
+        
+        workbookPart.Workbook.Save();
+    }
+    
+    static void CreateSummarySheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, TradingEngine engine, List<Position> putSpreads, List<Position> coveredCalls, string timestamp, uint sheetId)
+    {
+        var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+        var sheetData = new SheetData();
+        worksheetPart.Worksheet = new Worksheet(sheetData);
+        
+        var sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = sheetId, Name = sheetName };
+        sheets.Append(sheet);
+        
+        // Headers and Summary Data
         var putSpreadPnL = putSpreads.Sum(p => p.ProfitLoss ?? 0);
         var coveredCallPnL = coveredCalls.Sum(p => p.ProfitLoss ?? 0);
         var totalPnL = engine.GetTotalPnL();
+        var totalTrades = putSpreads.Count + coveredCalls.Count;
         
-        var winningTrades = closedPositions.Count(p => (p.ProfitLoss ?? 0) > 0);
-        var totalTrades = closedPositions.Count;
-        var winRate = totalTrades > 0 ? (decimal)winningTrades / totalTrades : 0;
+        // Title row
+        AddRow(sheetData, "SOFI Options Strategy - Executive Summary", $"Generated: {timestamp}");
+        AddEmptyRow(sheetData);
         
-        var summaryLines = new[]{ 
-            "Component,PnL_GBP,Trades,WinRate,AvgProfit,Notes",
-            $"PutCreditSpreads,{putSpreadPnL:F0},{putSpreads.Count},{(putSpreads.Count > 0 ? (decimal)putSpreads.Count(p => (p.ProfitLoss ?? 0) > 0) / putSpreads.Count : 0):P1},{(putSpreads.Count > 0 ? putSpreads.Average(p => p.ProfitLoss ?? 0) : 0):F2},Primary strategy - 15 delta 45 DTE with realistic premiums",
-            $"CoveredCalls,{coveredCallPnL:F0},{coveredCalls.Count},{(coveredCalls.Count > 0 ? (decimal)coveredCalls.Count(p => (p.ProfitLoss ?? 0) > 0) / coveredCalls.Count : 0):P1},{(coveredCalls.Count > 0 ? coveredCalls.Average(p => p.ProfitLoss ?? 0) : 0):F2},Secondary strategy - 12 delta conservative",
-            $"TOTAL,{totalPnL:F0},{totalTrades},{winRate:P1},{(totalTrades > 0 ? closedPositions.Average(p => p.ProfitLoss ?? 0) : 0):F2},Dual strategy with early closing 70-90% - Generated {timestamp}"
-        };
+        // Performance summary
+        AddRow(sheetData, "Strategy Component", "P&L (GBP)", "Trades", "Avg P&L", "Sheet Reference", "Notes");
+        AddRow(sheetData, "Put Credit Spreads", putSpreadPnL.ToString("F0"), putSpreads.Count.ToString(), 
+               putSpreads.Any() ? putSpreads.Average(p => p.ProfitLoss ?? 0).ToString("F2") : "0", 
+               "=HYPERLINK(\"#PutCreditSpreads!A1\",\"→ Details\")", "Primary strategy - 15Δ 45DTE");
+        AddRow(sheetData, "Covered Calls", coveredCallPnL.ToString("F0"), coveredCalls.Count.ToString(),
+               coveredCalls.Any() ? coveredCalls.Average(p => p.ProfitLoss ?? 0).ToString("F2") : "0",
+               "=HYPERLINK(\"#CoveredCalls!A1\",\"→ Details\")", "Secondary strategy - 12Δ");
+        AddRow(sheetData, "TOTAL", totalPnL.ToString("F0"), totalTrades.ToString(), 
+               totalTrades > 0 ? ((putSpreadPnL + coveredCallPnL) / totalTrades).ToString("F2") : "0",
+               "=HYPERLINK(\"#All_Trades!A1\",\"→ All Trades\")", "Combined dual-strategy");
         
-        // Timestamped and regular versions
-        File.WriteAllLines(Path.Combine(OutDir, $"{timestamp}_backtest_summary.csv"), summaryLines);
-        File.WriteAllLines(Path.Combine(OutDir, "backtest_summary.csv"), summaryLines);
+        AddEmptyRow(sheetData);
+        AddRow(sheetData, "Quick Navigation");
+        AddRow(sheetData, "All Trades Ledger", "=HYPERLINK(\"#All_Trades!A1\",\"→ View All Trades\")");
+        AddRow(sheetData, "Monthly Performance", "=HYPERLINK(\"#Monthly_Performance!A1\",\"→ Monthly P&L\")");
+        AddRow(sheetData, "Risk Analysis", "=HYPERLINK(\"#Risk_Analysis!A1\",\"→ Risk Metrics\")");
+        AddRow(sheetData, "Price Data", "=HYPERLINK(\"#Daily_Prices!A1\",\"→ SOFI Prices\")");
+    }
+    
+    static void CreateTradesLedgerSheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, List<Position> allPositions, uint sheetId)
+    {
+        var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+        var sheetData = new SheetData();
+        worksheetPart.Worksheet = new Worksheet(sheetData);
         
-        // Generate detailed trades ledger
-        var tradesData = new List<string[]>
-        {
-            new[]{"TradeID","Strategy","EntryDate","ExitDate","DTE","Delta","StrikePrice","EntryPrice","ExitPrice","PremiumCollected","ProfitLoss","ProfitPct","VixLevel","VixRegime","Status","Notes"}
-        };
+        var sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = sheetId, Name = sheetName };
+        sheets.Append(sheet);
         
+        // Headers
+        AddRow(sheetData, "All Trades Ledger - Cross-Referenced by Strategy");
+        AddEmptyRow(sheetData);
+        AddRow(sheetData, "Trade ID", "Strategy", "Entry Date", "Exit Date", "DTE", "Delta", "Strike", 
+               "Entry Price", "Exit Price", "Premium", "P&L", "ROI %", "Contracts", "Capital", 
+               "VIX", "Market Regime", "Vol Event", "Status", "Entry Reasoning", "Exit Reasoning", 
+               "Strategy Sheet", "Notes");
+        
+        // Data rows with cross-references
         foreach (var pos in allPositions.OrderBy(p => p.EntryDate))
         {
-            tradesData.Add(new[]
-            {
+            var strategySheetRef = pos.Strategy == StrategyType.PutCreditSpread 
+                ? "=HYPERLINK(\"#PutCreditSpreads!A1\",\"→ PCS Details\")"
+                : "=HYPERLINK(\"#CoveredCalls!A1\",\"→ CC Details\")";
+                
+            AddRow(sheetData,
                 pos.Id,
                 pos.Strategy.ToString(),
                 pos.EntryDate.ToString("yyyy-MM-dd"),
@@ -177,19 +252,108 @@ class Program
                 pos.ExitPrice?.ToString("F2") ?? "",
                 pos.PremiumCollected.ToString("F2"),
                 (pos.ProfitLoss ?? 0).ToString("F2"),
-                pos.ProfitPercentage.ToString("P1"),
+                pos.ROIPercentage.ToString("P1"),
+                pos.ContractSize.ToString(),
+                pos.CapitalAllocated.ToString("F0"),
+                pos.VixLevel.ToString("F1"),
+                pos.MarketRegime.ToString(),
+                pos.VolEvent.ToString(),
+                pos.Status.ToString(),
+                pos.EntryReasoning,
+                pos.ExitReasoning,
+                strategySheetRef,
+                pos.Notes
+            );
+        }
+    }
+    
+    static void CreateStrategySheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, List<Position> positions, string strategyTitle, uint sheetId)
+    {
+        var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+        var sheetData = new SheetData();
+        worksheetPart.Worksheet = new Worksheet(sheetData);
+        
+        var sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = sheetId, Name = sheetName };
+        sheets.Append(sheet);
+        
+        // Strategy-specific header
+        AddRow(sheetData, strategyTitle);
+        AddRow(sheetData, "=HYPERLINK(\"#All_Trades!A1\",\"← Back to All Trades\")", "=HYPERLINK(\"#Executive_Summary!A1\",\"← Back to Summary\")");
+        AddEmptyRow(sheetData);
+        
+        // Strategy performance metrics
+        var totalPnL = positions.Sum(p => p.ProfitLoss ?? 0);
+        var avgPnL = positions.Any() ? positions.Average(p => p.ProfitLoss ?? 0) : 0;
+        var winningTrades = positions.Count(p => (p.ProfitLoss ?? 0) > 0);
+        var winRate = positions.Count > 0 ? (decimal)winningTrades / positions.Count : 0;
+        
+        AddRow(sheetData, "Strategy Metrics");
+        AddRow(sheetData, "Total P&L:", totalPnL.ToString("F2"));
+        AddRow(sheetData, "Total Trades:", positions.Count.ToString());
+        AddRow(sheetData, "Win Rate:", winRate.ToString("P1"));
+        AddRow(sheetData, "Average P&L:", avgPnL.ToString("F2"));
+        AddEmptyRow(sheetData);
+        
+        // Detailed trades for this strategy
+        AddRow(sheetData, "Trade Details");
+        AddRow(sheetData, "Trade ID", "Entry Date", "Exit Date", "DTE", "Delta", "Strike", 
+               "Premium", "P&L", "VIX Level", "Regime", "Status", "Notes");
+        
+        foreach (var pos in positions.OrderBy(p => p.EntryDate))
+        {
+            AddRow(sheetData,
+                pos.Id,
+                pos.EntryDate.ToString("yyyy-MM-dd"),
+                pos.ExitDate?.ToString("yyyy-MM-dd") ?? "OPEN",
+                pos.DaysToExpiration.ToString(),
+                pos.Delta.ToString("F3"),
+                pos.StrikePrice.ToString("F2"),
+                pos.PremiumCollected.ToString("F2"),
+                (pos.ProfitLoss ?? 0).ToString("F2"),
                 pos.VixLevel.ToString("F1"),
                 pos.VixRegime.ToString(),
                 pos.Status.ToString(),
                 pos.Notes
-            });
+            );
         }
+    }
+    
+    static void CreatePriceDataSheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, List<DailyBar> bars, uint sheetId)
+    {
+        var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+        var sheetData = new SheetData();
+        worksheetPart.Worksheet = new Worksheet(sheetData);
         
-        // Generate timestamped and regular trades ledger
-        WriteCsv(Path.Combine(OutDir, $"{timestamp}_trades_ledger.csv"), tradesData.First(), tradesData.Skip(1));
-        WriteCsv(Path.Combine(OutDir, "trades_ledger.csv"), tradesData.First(), tradesData.Skip(1));
+        var sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = sheetId, Name = sheetName };
+        sheets.Append(sheet);
         
-        // Generate weekly/monthly performance summary
+        AddRow(sheetData, "SOFI Daily Price Data");
+        AddRow(sheetData, "=HYPERLINK(\"#Executive_Summary!A1\",\"← Back to Summary\")");
+        AddEmptyRow(sheetData);
+        
+        AddRow(sheetData, "Date", "Open", "High", "Low", "Close", "Volume");
+        
+        foreach (var bar in bars)
+        {
+            AddRow(sheetData, bar.Date.ToString("yyyy-MM-dd"), bar.Open.ToString("F2"), 
+                   bar.High.ToString("F2"), bar.Low.ToString("F2"), bar.Close.ToString("F2"), 
+                   bar.Volume.ToString());
+        }
+    }
+    
+    static void CreateMonthlyPerformanceSheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, List<TradingSession> sessions, uint sheetId)
+    {
+        var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+        var sheetData = new SheetData();
+        worksheetPart.Worksheet = new Worksheet(sheetData);
+        
+        var sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = sheetId, Name = sheetName };
+        sheets.Append(sheet);
+        
+        AddRow(sheetData, "Monthly Performance Analysis");
+        AddRow(sheetData, "=HYPERLINK(\"#Executive_Summary!A1\",\"← Back to Summary\")");
+        AddEmptyRow(sheetData);
+        
         var monthlyPerformance = sessions
             .GroupBy(s => new { s.Date.Year, s.Date.Month })
             .Select(g => new
@@ -200,50 +364,73 @@ class Program
                 GoalsMetDays = g.Count(s => s.GoalsMet)
             })
             .OrderBy(m => m.Month);
-        
-        var performanceData = new List<string[]>
-        {
-            new[]{"Month","PremiumCollected","TradingDays","GoalsMetDays","GoalsMet%"}
-        };
+            
+        AddRow(sheetData, "Month", "Premium Collected", "Trading Days", "Goals Met Days", "Goals Met %");
         
         foreach (var month in monthlyPerformance)
         {
             var goalsMetPct = month.TradingDays > 0 ? (decimal)month.GoalsMetDays / month.TradingDays : 0;
-            performanceData.Add(new[]
-            {
-                month.Month,
-                month.TotalPremium.ToString("F0"),
-                month.TradingDays.ToString(),
-                month.GoalsMetDays.ToString(),
-                goalsMetPct.ToString("P0")
-            });
+            AddRow(sheetData, month.Month, month.TotalPremium.ToString("F0"), month.TradingDays.ToString(),
+                   month.GoalsMetDays.ToString(), goalsMetPct.ToString("P0"));
         }
+    }
+    
+    static void CreateRiskAnalysisSheet(WorkbookPart workbookPart, Sheets sheets, string sheetName, List<Position> allPositions, uint sheetId)
+    {
+        var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+        var sheetData = new SheetData();
+        worksheetPart.Worksheet = new Worksheet(sheetData);
         
-        // Generate timestamped and regular monthly performance
-        WriteCsv(Path.Combine(OutDir, $"{timestamp}_monthly_performance.csv"), performanceData.First(), performanceData.Skip(1));
-        WriteCsv(Path.Combine(OutDir, "monthly_performance.csv"), performanceData.First(), performanceData.Skip(1));
+        var sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = sheetId, Name = sheetName };
+        sheets.Append(sheet);
         
-        // Generate exceptions/issues log
-        var exceptions = allPositions
-            .Where(p => p.Status == PositionStatus.Assigned || (p.ProfitLoss ?? 0) < -100)
-            .Select(p => new[]
-            {
-                p.Id,
-                p.Status == PositionStatus.Assigned ? "Assignment" : "Large Loss",
-                p.Status == PositionStatus.Assigned ? "Stock assigned - manage shares" : $"Loss: £{p.ProfitLoss:F0}"
-            })
-            .ToList();
+        AddRow(sheetData, "Risk Analysis & Exceptions");
+        AddRow(sheetData, "=HYPERLINK(\"#Executive_Summary!A1\",\"← Back to Summary\")");
+        AddEmptyRow(sheetData);
         
-        if (!exceptions.Any())
+        // Risk metrics
+        var assignments = allPositions.Where(p => p.Status == PositionStatus.Assigned).ToList();
+        var largeLosses = allPositions.Where(p => (p.ProfitLoss ?? 0) < -100).ToList();
+        
+        AddRow(sheetData, "Risk Summary");
+        AddRow(sheetData, "Total Assignments:", assignments.Count.ToString());
+        AddRow(sheetData, "Large Losses (>£100):", largeLosses.Count.ToString());
+        AddRow(sheetData, "Max Single Loss:", allPositions.Min(p => p.ProfitLoss ?? 0).ToString("F2"));
+        AddRow(sheetData, "Risk Status:", assignments.Any() || largeLosses.Any() ? "REVIEW REQUIRED" : "CLEAN");
+        AddEmptyRow(sheetData);
+        
+        if (assignments.Any() || largeLosses.Any())
         {
-            exceptions.Add(new[] { "None", "No exceptions", "Clean run - all positions managed successfully" });
+            AddRow(sheetData, "Exception Details");
+            AddRow(sheetData, "Trade ID", "Issue Type", "Details", "Resolution");
+            
+            foreach (var pos in assignments.Concat(largeLosses).Distinct())
+            {
+                var issueType = pos.Status == PositionStatus.Assigned ? "Assignment" : "Large Loss";
+                var details = pos.Status == PositionStatus.Assigned ? "Stock assigned - manage shares" : $"Loss: £{pos.ProfitLoss:F0}";
+                AddRow(sheetData, pos.Id, issueType, details, "Review required");
+            }
         }
-        
-        var exceptionLines = new[] { "TradeID,Issue,Resolution" }.Concat(exceptions.Select(e => string.Join(",", e)));
-        
-        // Generate timestamped and regular exceptions log
-        File.WriteAllLines(Path.Combine(OutDir, $"{timestamp}_exceptions.csv"), exceptionLines);
-        File.WriteAllLines(Path.Combine(OutDir, "exceptions.csv"), exceptionLines);
+        else
+        {
+            AddRow(sheetData, "No exceptions found - Clean trading run with systematic risk management");
+        }
+    }
+    
+    static void AddRow(SheetData sheetData, params string[] values)
+    {
+        var row = new Row();
+        foreach (var value in values)
+        {
+            var cell = new Cell() { DataType = CellValues.InlineString, InlineString = new InlineString() { Text = new Text(value) } };
+            row.AppendChild(cell);
+        }
+        sheetData.AppendChild(row);
+    }
+    
+    static void AddEmptyRow(SheetData sheetData)
+    {
+        sheetData.AppendChild(new Row());
     }
 
     static async Task<List<DailyBar>> GetDailyBars(string symbol, DateTime start, DateTime end)
@@ -355,13 +542,6 @@ class Program
     }
 
     static long ToUnixMs(DateTime dt) => new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero).ToUnixTimeMilliseconds();
-
-    static void WriteCsv(string path, IEnumerable<string> header, IEnumerable<IEnumerable<string>> rows)
-    {
-        var lines = new List<string> { string.Join(",", header) };
-        foreach (var r in rows) lines.Add(string.Join(",", r.Select(s => s.Contains(",") ? $"\"{s.Replace("\"", "\"\"")}\"" : s)));
-        File.WriteAllLines(path, lines, new UTF8Encoding(false));
-    }
 }
 
 public static class RandomExtensions
