@@ -1,0 +1,101 @@
+# AAPL-specific trading configuration  
+# Symbol: AAPL - Large cap technology company (mega cap)
+symbol: "AAPL"
+
+# Account Settings (same base account)
+account:
+  equity: 45000
+  shares: 1100
+  baselineQty: 6
+
+# AAPL-specific Trading Parameters
+trading:
+  # Trade execution windows (Eastern Time) - AAPL has excellent liquidity
+  entry_window:
+    start: "09:31"  # AAPL-specific - can trade right at open
+    end: "10:00"    # Earlier window due to high liquidity
+  exit_window:
+    start: "15:00"  # AAPL-specific - can exit earlier
+    end: "15:55"    # Almost until close
+  
+  # AAPL-specific option parameters  
+  options:
+    # Delta thresholds for AAPL options (more aggressive due to liquidity)
+    put_delta_min: -0.20    # AAPL allows higher delta due to stability
+    put_delta_max: -0.35    
+    call_delta_min: 0.20    # AAPL higher delta calls
+    call_delta_max: 0.35
+    
+    # Days to expiration preferences
+    dte_min: 7              # AAPL can handle shorter DTE
+    dte_max: 45
+    dte_optimal: 14         # AAPL shorter optimal due to liquidity
+    
+    # Strike selection (AAPL-specific)
+    strike_interval: 2.50   # AAPL typically trades in $2.50 increments
+    min_premium: 2.50       # Higher minimum premium for AAPL
+    max_premium: 15.00      # Higher max premium due to stock price
+
+# AAPL-specific Risk Management (more aggressive due to stability)
+risk:
+  # Position sizing (larger due to mega cap stability)
+  max_position_size: 0.30   # 30% max position size for AAPL
+  capital_allocation: 0.20  # 20% capital per trade for AAPL
+  
+  # Stop loss thresholds (wider for AAPL)
+  max_loss_per_trade: 0.08  # 8% max loss per trade
+  max_portfolio_drawdown: 0.25  # 25% max drawdown
+  
+  # AAPL sector considerations
+  tech_megacap_correlation_limit: 0.50  # Limit correlation with other mega caps
+
+# AAPL-specific Market Conditions
+market:
+  # VIX thresholds for AAPL trading (less sensitive due to stability)
+  vix_low: 16               # Low volatility - aggressive AAPL positioning
+  vix_normal: 28            # Normal volatility - standard AAPL strategy  
+  vix_high: 40              # High volatility - defensive AAPL approach
+  vix_crisis: 60            # Crisis mode - reduce AAPL positions
+  
+  # AAPL-specific market events
+  earnings_blackout_days: 3  # Fewer days for AAPL earnings (stable)
+  tech_sector_beta: 1.0      # AAPL's beta vs market (relatively stable)
+
+# Strategy Configuration (balanced due to dual nature)
+strategy:
+  # Dual strategy weights for AAPL (balanced approach)
+  put_credit_spread_weight: 0.50    # 50% PCS for AAPL
+  covered_call_weight: 0.50         # 50% covered calls
+  
+  # AAPL-specific timing
+  prefer_monthly_expiration: true    # AAPL excellent monthly liquidity
+  avoid_weekly_expiration: false     # AAPL weeklies very liquid
+  
+  # Early close thresholds (can be more patient with AAPL)
+  profit_target: 0.60              # Close at 60% max profit
+  early_close_dte: 5               # Close within 5 DTE (vs 7 for SOFI)
+  
+# AAPL Company-Specific Factors
+company:
+  sector: "tech_megacap"
+  market_cap: "mega"               # Largest market cap
+  earnings_frequency: "quarterly"
+  
+  # AAPL-specific catalysts to monitor
+  key_events:
+    - "iphone_launch_cycles"       # Major product launches
+    - "services_revenue_growth"    # Services segment growth
+    - "china_market_dynamics"      # China sales exposure
+    - "supply_chain_constraints"   # Manufacturing issues
+    - "ar_vr_product_launches"     # Future product categories
+
+# Data Sources
+data:
+  primary: "theta_data"
+  fallback: "synthetic"
+  
+# Backtesting Parameters  
+backtest:
+  start_date: "2023-08-01"
+  end_date: "2025-09-05"
+  initial_capital: 10000

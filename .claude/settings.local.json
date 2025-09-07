@@ -9,7 +9,10 @@
       "WebFetch(domain:www.youtube.com)",
       "Bash(dotnet clean:*)",
       "Bash(timeout:*)",
-      "Bash(dotnet add package:*)"
+      "Bash(dotnet add package:*)",
+      "Bash(copy:*)",
+      "Bash(dotnet script:*)",
+      "Bash(dotnet test:*)"
     ],
     "deny": [],
     "ask": []

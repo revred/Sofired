@@ -1,0 +1,103 @@
+# NVDA-specific trading configuration  
+# Symbol: NVDA - AI/GPU semiconductor company (high growth, high volatility)
+symbol: "NVDA"
+
+# Account Settings (same base account)
+account:
+  equity: 45000
+  shares: 1100
+  baselineQty: 6
+
+# NVDA-specific Trading Parameters
+trading:
+  # Trade execution windows (Eastern Time) - NVDA good liquidity but volatile
+  entry_window:
+    start: "09:45"  # NVDA-specific - wait for initial volatility to settle
+    end: "10:15"    # Moderate window
+  exit_window:
+    start: "15:10"  # NVDA-specific - earlier exit before close
+    end: "15:45"
+  
+  # NVDA-specific option parameters
+  options:
+    # Delta thresholds for NVDA options (moderate due to AI volatility)
+    put_delta_min: -0.12    # NVDA moderate delta
+    put_delta_max: -0.22    
+    call_delta_min: 0.12    # NVDA moderate call delta
+    call_delta_max: 0.25
+    
+    # Days to expiration preferences
+    dte_min: 14             # NVDA needs moderate DTE
+    dte_max: 45
+    dte_optimal: 25         # NVDA optimal DTE
+    
+    # Strike selection (NVDA-specific)
+    strike_interval: 5.00   # NVDA typically trades in $5.00 increments
+    min_premium: 3.00       # Higher minimum premium for NVDA
+    max_premium: 20.00      # High max premium due to AI premium
+
+# NVDA-specific Risk Management (moderate-conservative)
+risk:
+  # Position sizing (moderate due to AI sector growth)
+  max_position_size: 0.20   # 20% max position size for NVDA
+  capital_allocation: 0.12  # 12% capital per trade for NVDA
+  
+  # Stop loss thresholds
+  max_loss_per_trade: 0.06  # 6% max loss per trade
+  max_portfolio_drawdown: 0.20  # 20% max drawdown
+  
+  # NVDA sector considerations
+  ai_semiconductor_correlation_limit: 0.35  # Limit correlation with AI stocks
+
+# NVDA-specific Market Conditions
+market:
+  # VIX thresholds for NVDA trading (moderately sensitive)
+  vix_low: 14               # Low volatility - aggressive NVDA positioning
+  vix_normal: 26            # Normal volatility - standard NVDA strategy  
+  vix_high: 35              # High volatility - defensive NVDA approach
+  vix_crisis: 50            # Crisis mode - reduce NVDA positions
+  
+  # NVDA-specific market events
+  earnings_blackout_days: 7  # Moderate days for NVDA earnings
+  ai_sector_beta: 1.8        # NVDA's beta vs market (AI volatility)
+
+# Strategy Configuration (balanced with slight PCS preference)
+strategy:
+  # Dual strategy weights for NVDA (favor PCS during AI boom)
+  put_credit_spread_weight: 0.65    # 65% PCS for NVDA (AI uptrend)
+  covered_call_weight: 0.35         # 35% covered calls
+  
+  # NVDA-specific timing
+  prefer_monthly_expiration: true    # NVDA good monthly liquidity
+  avoid_weekly_expiration: false     # NVDA weeklies acceptable
+  
+  # Early close thresholds (moderate patience)
+  profit_target: 0.50              # Close at 50% max profit
+  early_close_dte: 8               # Close within 8 DTE
+  
+# NVDA Company-Specific Factors
+company:
+  sector: "ai_semiconductor"
+  market_cap: "mega"               # AI boom valuation
+  earnings_frequency: "quarterly"
+  
+  # NVDA-specific catalysts to monitor
+  key_events:
+    - "ai_datacenter_demand"        # AI training demand
+    - "gpu_architecture_launches"   # New GPU generations
+    - "cryptocurrency_mining"       # Crypto demand cycles
+    - "automotive_partnerships"     # Autonomous vehicle chips
+    - "geopolitical_chip_policies"  # US-China trade issues
+    - "competitive_threats_amd"     # AMD competition
+    - "ai_software_monetization"    # Software revenue growth
+
+# Data Sources
+data:
+  primary: "theta_data"
+  fallback: "synthetic"
+  
+# Backtesting Parameters  
+backtest:
+  start_date: "2023-08-01"
+  end_date: "2025-09-05"
+  initial_capital: 10000

@@ -1,0 +1,100 @@
+# SOFI-specific trading configuration
+# Symbol: SOFI - Financial technology company
+symbol: "SOFI"
+
+# Account Settings
+account:
+  equity: 45000
+  shares: 1100
+  baselineQty: 6
+
+# SOFI-specific Trading Parameters
+trading:
+  # Trade execution windows (Eastern Time)
+  entry_window:
+    start: "10:10"  # SOFI-specific optimal entry time
+    end: "10:30"
+  exit_window:
+    start: "15:20"  # SOFI-specific optimal exit time  
+    end: "15:35"
+  
+  # SOFI-specific option parameters
+  options:
+    # Delta thresholds for SOFI options
+    put_delta_min: -0.15    # SOFI-optimized put delta
+    put_delta_max: -0.25
+    call_delta_min: 0.15    # SOFI-optimized call delta
+    call_delta_max: 0.30
+    
+    # Days to expiration preferences
+    dte_min: 7
+    dte_max: 45
+    dte_optimal: 21         # SOFI sweet spot for premium decay
+    
+    # Strike selection (SOFI-specific)
+    strike_interval: 0.50   # SOFI typically trades in $0.50 increments
+    min_premium: 0.75       # Minimum premium worth trading for SOFI
+    max_premium: 5.00       # Maximum premium to avoid over-concentration
+
+# SOFI-specific Risk Management
+risk:
+  # Position sizing
+  max_position_size: 0.25   # 25% max position size for SOFI
+  capital_allocation: 0.15  # 15% capital per trade for SOFI
+  
+  # Stop loss thresholds
+  max_loss_per_trade: 0.05  # 5% max loss per trade
+  max_portfolio_drawdown: 0.20  # 20% max drawdown
+  
+  # SOFI sector considerations
+  fintech_correlation_limit: 0.40  # Limit correlation with other fintech
+
+# SOFI-specific Market Conditions
+market:
+  # VIX thresholds for SOFI trading
+  vix_low: 15               # Low volatility - aggressive SOFI positioning
+  vix_normal: 25            # Normal volatility - standard SOFI strategy
+  vix_high: 35              # High volatility - defensive SOFI approach
+  vix_crisis: 50            # Crisis mode - no new SOFI positions
+  
+  # SOFI-specific market events
+  earnings_blackout_days: 5  # Days before/after SOFI earnings to avoid
+  fintech_sector_beta: 1.3   # SOFI's typical beta vs market
+
+# Strategy Configuration
+strategy:
+  # Dual strategy weights for SOFI
+  put_credit_spread_weight: 0.60    # 60% PCS for SOFI's uptrend
+  covered_call_weight: 0.40         # 40% covered calls
+  
+  # SOFI-specific timing
+  prefer_monthly_expiration: true    # SOFI has better liquidity on monthlies
+  avoid_weekly_expiration: false     # SOFI weeklies acceptable
+  
+  # Early close thresholds
+  profit_target: 0.50              # Close at 50% max profit
+  early_close_dte: 7               # Close within 7 DTE regardless
+  
+# SOFI Company-Specific Factors
+company:
+  sector: "fintech"
+  market_cap: "large"              # Adjust based on current SOFI market cap
+  earnings_frequency: "quarterly"
+  
+  # SOFI-specific catalysts to monitor
+  key_events:
+    - "bank_charter_updates"
+    - "student_loan_regulations"  
+    - "fintech_sector_rotation"
+    - "interest_rate_changes"      # SOFI sensitive to rates
+
+# Data Sources
+data:
+  primary: "theta_data"
+  fallback: "synthetic"
+  
+# Backtesting Parameters  
+backtest:
+  start_date: "2023-08-01"
+  end_date: "2025-09-05"
+  initial_capital: 10000

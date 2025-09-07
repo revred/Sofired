@@ -34,7 +34,7 @@ namespace Sofired.Core
                 return cachedConfig;
             }
             
-            var configPath = Path.Combine(".", $"config_{symbol.ToLower()}.yml");
+            var configPath = Path.Combine("configs", $"config_{symbol.ToLower()}.yml");
             
             if (!File.Exists(configPath))
             {
