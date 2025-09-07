@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Sofired.Core
 {
@@ -499,6 +500,135 @@ namespace Sofired.Core
             // Update rolling metrics (simplified)
             metrics.RollingVolatility = Math.Abs(positionPnL.TotalPnL) / 1000m; // Simplified vol calc
         }
+
+        /// <summary>
+        /// Validate trade risk for live trading execution
+        /// </summary>
+        public async Task<TradeRiskValidation> ValidateTradeRisk(
+            string symbol,
+            decimal stockPrice,
+            decimal shortStrike,
+            decimal longStrike,
+            decimal accountValue,
+            SymbolConfig symbolConfig)
+        {
+            var validation = new TradeRiskValidation
+            {
+                Symbol = symbol,
+                ValidationTime = DateTime.Now,
+                IsApproved = false,
+                Warnings = new List<string>(),
+                RejectionReason = ""
+            };
+
+            try
+            {
+                // Basic parameter validation
+                if (shortStrike <= longStrike)
+                {
+                    validation.RejectionReason = "Invalid strike configuration: Short strike must be higher than long strike for put spread";
+                    return validation;
+                }
+
+                if (stockPrice <= shortStrike)
+                {
+                    validation.RejectionReason = "Stock price is at or below short strike - high assignment risk";
+                    return validation;
+                }
+
+                // Account value validation
+                if (accountValue < 1000m)
+                {
+                    validation.RejectionReason = "Insufficient account value for options trading";
+                    return validation;
+                }
+
+                // Position sizing based on risk management
+                var positionRecommendation = CalculateOptimalPositionSize(
+                    symbol, accountValue, 22m, new PortfolioPnL(), symbolConfig);
+
+                validation.RecommendedQuantity = CalculateContractQuantity(positionRecommendation.RecommendedSize, symbol);
+
+                // Risk checks
+                var maxLossPerContract = Math.Abs(shortStrike - longStrike);
+                var totalMaxLoss = maxLossPerContract * validation.RecommendedQuantity * 100m; // Options are per 100 shares
+
+                // Check if max loss exceeds risk tolerance
+                var maxLossRatio = totalMaxLoss / accountValue;
+                if (maxLossRatio > symbolConfig.Risk.MaxLossPerTrade)
+                {
+                    validation.RejectionReason = $"Max loss ({maxLossRatio:P2}) exceeds configured limit ({symbolConfig.Risk.MaxLossPerTrade:P2})";
+                    return validation;
+                }
+
+                // Check position size limits
+                var positionSizeRatio = (validation.RecommendedQuantity * stockPrice * 100m) / accountValue;
+                if (positionSizeRatio > symbolConfig.Risk.MaxPositionSize)
+                {
+                    validation.RejectionReason = $"Position size ({positionSizeRatio:P2}) exceeds configured limit ({symbolConfig.Risk.MaxPositionSize:P2})";
+                    return validation;
+                }
+
+                // Moneyness checks
+                var moneyness = (stockPrice - shortStrike) / stockPrice;
+                if (moneyness < 0.05m) // Less than 5% OTM
+                {
+                    validation.Warnings.Add("Position is close to ITM - higher assignment risk");
+                }
+
+                // Days to expiration check
+                var daysToExpiration = (DateTime.Now.Date - DateTime.Now.Date).Days; // Placeholder - would calculate from expiration
+                if (daysToExpiration < 7)
+                {
+                    validation.Warnings.Add("Less than 7 days to expiration - higher gamma risk");
+                }
+
+                // Market hours validation
+                var now = DateTime.Now;
+                var isMarketHours = now.Hour >= 9 && now.Hour < 16 && 
+                                   now.DayOfWeek != DayOfWeek.Saturday && 
+                                   now.DayOfWeek != DayOfWeek.Sunday;
+
+                if (!isMarketHours)
+                {
+                    validation.Warnings.Add("Trading outside regular market hours - wider spreads expected");
+                }
+
+                // Volatility environment check
+                var currentVIX = 22m; // Would get real VIX
+                if (currentVIX > 30m)
+                {
+                    validation.Warnings.Add($"High volatility environment (VIX: {currentVIX:F1}) - increased risk");
+                }
+
+                // Approve the trade if all checks pass
+                validation.IsApproved = true;
+                validation.MaxLoss = totalMaxLoss;
+                validation.EstimatedCredit = 0.5m * validation.RecommendedQuantity; // Placeholder estimate
+
+                return validation;
+            }
+            catch (Exception ex)
+            {
+                validation.RejectionReason = $"Risk validation error: {ex.Message}";
+                return validation;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Risk validation result for trade approval
+    /// </summary>
+    public class TradeRiskValidation
+    {
+        public string Symbol { get; set; } = "";
+        public DateTime ValidationTime { get; set; }
+        public bool IsApproved { get; set; }
+        public int RecommendedQuantity { get; set; }
+        public decimal MaxLoss { get; set; }
+        public decimal EstimatedCredit { get; set; }
+        public List<string> Warnings { get; set; } = new();
+        public string RejectionReason { get; set; } = "";
     }
     
     /// <summary>

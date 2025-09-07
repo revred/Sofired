@@ -9,7 +9,7 @@ public enum VolRegime { Low, Normal, High }
 
 public enum StrategyType { PutCreditSpread, CoveredCall }
 
-public enum PositionStatus { Open, Closed, Rolled, Assigned }
+public enum PositionStatus { Open, Closed, Rolled, Assigned, Expired }
 
 public enum MarketRegime { Bull, Bear, Sideways, Volatile, Trending }
 
