@@ -1,0 +1,103 @@
+# TSLA-specific trading configuration  
+# Symbol: TSLA - Electric vehicle and energy company (high volatility)
+symbol: "TSLA"
+
+# Account Settings (same base account)
+account:
+  equity: 45000
+  shares: 1100
+  baselineQty: 6
+
+# TSLA-specific Trading Parameters (conservative due to volatility)
+trading:
+  # Trade execution windows (Eastern Time) - TSLA needs careful timing
+  entry_window:
+    start: "10:00"  # TSLA-specific - wait for market to settle
+    end: "10:20"    # Shorter window due to volatility
+  exit_window:
+    start: "15:15"  # TSLA-specific - earlier exit
+    end: "15:40"    # Avoid close volatility
+  
+  # TSLA-specific option parameters (conservative due to high volatility)
+  options:
+    # Delta thresholds for TSLA options (conservative due to volatility)
+    put_delta_min: -0.08    # TSLA very conservative delta
+    put_delta_max: -0.15    
+    call_delta_min: 0.08    # TSLA conservative call delta
+    call_delta_max: 0.18
+    
+    # Days to expiration preferences (longer for TSLA)
+    dte_min: 21             # TSLA needs longer DTE
+    dte_max: 60
+    dte_optimal: 35         # TSLA longer optimal due to volatility
+    
+    # Strike selection (TSLA-specific)
+    strike_interval: 5.00   # TSLA typically trades in $5.00 increments
+    min_premium: 5.00       # Higher minimum premium for TSLA
+    max_premium: 25.00      # Higher max premium due to volatility
+
+# TSLA-specific Risk Management (very conservative)
+risk:
+  # Position sizing (smaller due to high volatility)
+  max_position_size: 0.10   # 10% max position size for TSLA
+  capital_allocation: 0.08  # 8% capital per trade for TSLA
+  
+  # Stop loss thresholds (tight for TSLA)
+  max_loss_per_trade: 0.04  # 4% max loss per trade
+  max_portfolio_drawdown: 0.15  # 15% max drawdown
+  
+  # TSLA sector considerations
+  ev_sector_correlation_limit: 0.25  # Limit correlation with other EV
+
+# TSLA-specific Market Conditions (very sensitive to volatility)
+market:
+  # VIX thresholds for TSLA trading (highly sensitive)
+  vix_low: 12               # Low volatility - moderate TSLA positioning
+  vix_normal: 22            # Normal volatility - careful TSLA strategy  
+  vix_high: 30              # High volatility - very defensive
+  vix_crisis: 40            # Crisis mode - no new TSLA positions
+  
+  # TSLA-specific market events
+  earnings_blackout_days: 10 # Many days for TSLA earnings (volatile)
+  ev_sector_beta: 2.2        # TSLA's high beta vs market
+
+# Strategy Configuration (heavily weighted toward covered calls)
+strategy:
+  # Dual strategy weights for TSLA (prefer covered calls)
+  put_credit_spread_weight: 0.20    # 20% PCS for TSLA (risky)
+  covered_call_weight: 0.80         # 80% covered calls (safer)
+  
+  # TSLA-specific timing
+  prefer_monthly_expiration: true    # TSLA prefer monthlies for stability
+  avoid_weekly_expiration: true      # TSLA avoid weeklies (too volatile)
+  
+  # Early close thresholds (take profits quickly with TSLA)
+  profit_target: 0.30              # Close at 30% max profit (quick)
+  early_close_dte: 14              # Close within 14 DTE
+  
+# TSLA Company-Specific Factors
+company:
+  sector: "electric_vehicle"
+  market_cap: "large"              # Large but volatile
+  earnings_frequency: "quarterly"
+  
+  # TSLA-specific catalysts to monitor
+  key_events:
+    - "vehicle_delivery_numbers"    # Quarterly delivery reports
+    - "autonomous_driving_updates"  # FSD progress
+    - "battery_technology_advances" # Battery innovations
+    - "regulatory_approvals"        # Government regulations
+    - "elon_musk_announcements"     # CEO-driven volatility
+    - "gigafactory_expansions"      # Manufacturing capacity
+    - "energy_business_growth"      # Solar/storage business
+
+# Data Sources
+data:
+  primary: "theta_data"
+  fallback: "synthetic"
+  
+# Backtesting Parameters  
+backtest:
+  start_date: "2023-08-01"
+  end_date: "2025-09-05"
+  initial_capital: 10000
