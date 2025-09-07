@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sofired.Backtester")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+30fc08411dcfa5a8ec52ec9fe322597f9e90b6b1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+758cad4d9f4166ca9386319ea7b386d715cd526e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sofired.Backtester")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sofired.Backtester")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
