@@ -14,16 +14,6 @@
             "related": ".xml"
           }
         }
-      },
-      "Stroll.Theta.Client/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v9.0",
-        "compile": {
-          "bin/placeholder/Stroll.Theta.Client.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Stroll.Theta.Client.dll": {}
-        }
       }
     }
   },
@@ -50,16 +40,10 @@
         "yamldotnet.16.3.0.nupkg.sha512",
         "yamldotnet.nuspec"
       ]
-    },
-    "Stroll.Theta.Client/1.0.0": {
-      "type": "project",
-      "path": "../../../Stroll.Theta/src/Stroll.Theta.Client/Stroll.Theta.Client.csproj",
-      "msbuildProject": "../../../Stroll.Theta/src/Stroll.Theta.Client/Stroll.Theta.Client.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
-      "Stroll.Theta.Client >= 1.0.0",
       "YamlDotNet >= 16.3.0"
     ]
   },
@@ -95,11 +79,7 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {
-            "C:\\code\\Stroll.Theta\\src\\Stroll.Theta.Client\\Stroll.Theta.Client.csproj": {
-              "projectPath": "C:\\code\\Stroll.Theta\\src\\Stroll.Theta.Client\\Stroll.Theta.Client.csproj"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "warningProperties": {
