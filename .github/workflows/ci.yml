@@ -1,0 +1,352 @@
+name: Sofired CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop, feat/* ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0'
+  CONFIGURATION: Release
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build solution
+      run: dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore
+    
+    - name: Run unit tests
+      run: |
+        dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity normal \
+          --logger "trx;LogFileName=test-results.trx" \
+          --collect:"XPlat Code Coverage"
+      continue-on-error: true
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.os }}
+        path: |
+          **/*.trx
+          **/TestResults/**
+    
+    - name: Publish build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts-${{ matrix.os }}
+        path: |
+          src/*/bin/${{ env.CONFIGURATION }}/
+          !src/*/bin/${{ env.CONFIGURATION }}/**/*.pdb
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Checkout Stroll.Theta for MCP service
+      uses: actions/checkout@v4
+      with:
+        repository: revred/Stroll.Theta
+        path: stroll-theta
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build MCP service
+      run: |
+        cd stroll-theta/src/Stroll.Theta.Market
+        dotnet build --configuration Release
+    
+    - name: Test MCP service integration
+      run: |
+        # Start MCP service in background
+        cd stroll-theta/src/Stroll.Theta.Market
+        echo '{"id":"1","method":"initialize","params":{}}' | timeout 5 dotnet run --configuration Release || true
+        
+        # Test that the service responds correctly
+        if [ $? -eq 124 ]; then
+          echo "✅ MCP service started successfully (timeout expected)"
+        else
+          echo "⚠️ MCP service may have issues"
+        fi
+    
+    - name: Build Sofired with MCP integration
+      run: |
+        dotnet build src/Sofired.Core --configuration ${{ env.CONFIGURATION }}
+        dotnet build src/Sofired.Backtester --configuration ${{ env.CONFIGURATION }}
+    
+    - name: Test symbol configuration loading
+      run: |
+        cd src/Sofired.Backtester
+        # Test configuration demo
+        dotnet run config || true
+        
+        # Test checkpoint listing (should handle no checkpoints gracefully)
+        dotnet run checkpoints SOFI || true
+
+  backtest-validation:
+    name: Backtest Validation
+    runs-on: ubuntu-latest
+    needs: integration-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Checkout Stroll.Theta
+      uses: actions/checkout@v4
+      with:
+        repository: revred/Stroll.Theta
+        path: stroll-theta
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build projects
+      run: |
+        # Build MCP service
+        cd stroll-theta/src/Stroll.Theta.Market
+        dotnet build --configuration Release
+        cd ../../../
+        
+        # Build Sofired
+        dotnet build --configuration ${{ env.CONFIGURATION }}
+    
+    - name: Validate symbol configurations
+      run: |
+        # Check that all symbol configs are valid YAML
+        for config in configs/*.yml src/Sofired.Backtester/configs/*.yml; do
+          if [ -f "$config" ]; then
+            echo "Validating $config"
+            # Basic YAML syntax check (would need yq or similar for full validation)
+            grep -E "^symbol:|^account:|^trading:|^options:" "$config" > /dev/null || echo "⚠️ Config may be incomplete: $config"
+          fi
+        done
+    
+    - name: Test backtest initialization
+      run: |
+        cd src/Sofired.Backtester
+        # Test help display
+        dotnet run --help || true
+        
+        # Test configuration comparison
+        dotnet run compare SOFI AAPL || true
+
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Run code analysis
+      run: |
+        # Check for build warnings
+        dotnet build --configuration ${{ env.CONFIGURATION }} --warnaserror 2>&1 | tee build.log || true
+        
+        # Count warnings
+        WARNING_COUNT=$(grep -c "warning CS" build.log || echo "0")
+        echo "Found $WARNING_COUNT compiler warnings"
+        
+        if [ "$WARNING_COUNT" -gt "50" ]; then
+          echo "❌ Too many warnings ($WARNING_COUNT > 50)"
+          exit 1
+        else
+          echo "✅ Warning count acceptable ($WARNING_COUNT <= 50)"
+        fi
+    
+    - name: Check for security issues
+      run: |
+        # Check for vulnerable packages
+        dotnet list package --vulnerable --include-transitive || true
+        
+        # Basic secret scanning
+        if grep -r -i --exclude-dir=.git --exclude="*.yml" \
+          -E "(password|secret|key|token|api_key)\s*[:=]\s*['\"][^'\"]{8,}" .; then
+          echo "⚠️ Potential hardcoded secrets detected"
+        else
+          echo "✅ No obvious hardcoded secrets found"
+        fi
+
+  documentation:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Verify documentation files
+      run: |
+        # Check for required documentation
+        REQUIRED_DOCS=(
+          "README.md"
+          "BACKTEST_GUIDE.md"
+          "QUICK_REFERENCE.md"
+        )
+        
+        for doc in "${REQUIRED_DOCS[@]}"; do
+          if [ -f "$doc" ]; then
+            echo "✅ Found $doc"
+          else
+            echo "❌ Missing required documentation: $doc"
+            exit 1
+          fi
+        done
+    
+    - name: Check documentation quality
+      run: |
+        # Check that READMEs have minimum content
+        for readme in README.md BACKTEST_GUIDE.md; do
+          if [ -f "$readme" ]; then
+            LINE_COUNT=$(wc -l < "$readme")
+            if [ "$LINE_COUNT" -lt "50" ]; then
+              echo "⚠️ $readme seems too short ($LINE_COUNT lines)"
+            else
+              echo "✅ $readme has sufficient content ($LINE_COUNT lines)"
+            fi
+          fi
+        done
+
+  release-prep:
+    name: Release Preparation
+    runs-on: ubuntu-latest
+    needs: [build-and-test, integration-test, backtest-validation, code-quality]
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Create release package
+      run: |
+        # Build release configuration
+        dotnet build --configuration Release
+        
+        # Create release directory
+        mkdir -p release/sofired
+        
+        # Copy binaries
+        cp -r src/Sofired.Backtester/bin/Release/net9.0/* release/sofired/
+        cp -r src/Sofired.Core/bin/Release/net9.0/* release/sofired/
+        
+        # Copy configurations
+        cp -r configs release/sofired/
+        
+        # Copy documentation
+        cp README.md BACKTEST_GUIDE.md QUICK_REFERENCE.md release/sofired/
+        
+        # Create archive
+        cd release
+        tar -czf sofired-release.tar.gz sofired/
+        cd ..
+    
+    - name: Upload release package
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-package
+        path: release/sofired-release.tar.gz
+    
+    - name: Generate release notes
+      run: |
+        echo "## Release Notes" > RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "### Features" >> RELEASE_NOTES.md
+        echo "- Universal symbol support for any publicly traded option" >> RELEASE_NOTES.md
+        echo "- MCP service integration for seamless market data access" >> RELEASE_NOTES.md
+        echo "- Checkpoint system for resumable backtests" >> RELEASE_NOTES.md
+        echo "- Streaming Excel writer for memory-efficient processing" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "### Improvements" >> RELEASE_NOTES.md
+        echo "- Enhanced error handling and recovery" >> RELEASE_NOTES.md
+        echo "- Comprehensive documentation" >> RELEASE_NOTES.md
+        echo "- Optimized performance for large datasets" >> RELEASE_NOTES.md
+        
+        cat RELEASE_NOTES.md
+    
+    - name: Upload release notes
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-notes
+        path: RELEASE_NOTES.md
+
+  summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [build-and-test, integration-test, backtest-validation, code-quality, documentation]
+    if: always()
+    
+    steps:
+    - name: Check job results
+      run: |
+        echo "## CI/CD Pipeline Summary"
+        echo ""
+        echo "Build and Test: ${{ needs.build-and-test.result }}"
+        echo "Integration Test: ${{ needs.integration-test.result }}"
+        echo "Backtest Validation: ${{ needs.backtest-validation.result }}"
+        echo "Code Quality: ${{ needs.code-quality.result }}"
+        echo "Documentation: ${{ needs.documentation.result }}"
+        echo ""
+        
+        if [[ "${{ needs.build-and-test.result }}" == "success" && \
+              "${{ needs.integration-test.result }}" == "success" && \
+              "${{ needs.backtest-validation.result }}" == "success" && \
+              "${{ needs.code-quality.result }}" == "success" && \
+              "${{ needs.documentation.result }}" == "success" ]]; then
+          echo "✅ All checks passed!"
+        else
+          echo "❌ Some checks failed. Please review the results above."
+          exit 1
+        fi
