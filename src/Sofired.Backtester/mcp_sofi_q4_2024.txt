@@ -1,0 +1,7 @@
+C:\code\Sofired\src\Sofired.Backtester\MultiSymbolBacktester.cs(56,45): error CS0103: The name 'thetaClient' does not exist in the current context [C:\code\Sofired\src\Sofired.Backtester\Sofired.Backtester.csproj]
+C:\code\Sofired\src\Sofired.Backtester\Program.cs(108,13): error CS0128: A local variable or function named 'thetaDataClient' is already defined in this scope [C:\code\Sofired\src\Sofired.Backtester\Sofired.Backtester.csproj]
+C:\code\Sofired\src\Sofired.Backtester\Program.cs(109,28): error CS0128: A local variable or function named 'marketDataService' is already defined in this scope [C:\code\Sofired\src\Sofired.Backtester\Sofired.Backtester.csproj]
+C:\code\Sofired\src\Sofired.Backtester\Program.cs(108,9): warning CS0162: Unreachable code detected [C:\code\Sofired\src\Sofired.Backtester\Sofired.Backtester.csproj]
+C:\code\Sofired\src\Sofired.Backtester\MultiSymbolBacktester.cs(262,51): error CS0246: The type or namespace name 'MarketDataService' could not be found (are you missing a using directive or an assembly reference?) [C:\code\Sofired\src\Sofired.Backtester\Sofired.Backtester.csproj]
+
+The build failed. Fix the build errors and run again.

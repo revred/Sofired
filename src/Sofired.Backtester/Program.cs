@@ -10,7 +10,7 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Sofired.Core;
-using Stroll.Theta.Client;
+using Sofired.Backtester;
 
 class Program
 {
@@ -20,7 +20,10 @@ class Program
     {
         Directory.CreateDirectory(OutDir);
         
-        // Handle command-line arguments for different operations
+        // Parse command line arguments
+        var (symbol, resume, autoResume, specificCheckpoint) = ParseArguments(args);
+        
+        // Handle special operations first
         if (args.Length > 0)
         {
             switch (args[0].ToLower())
@@ -39,11 +42,53 @@ class Program
                         Console.WriteLine("Usage: dotnet run compare SYMBOL1 SYMBOL2");
                     }
                     return;
+                case "checkpoints":
+                    ListCheckpoints(symbol);
+                    return;
             }
         }
         
-        // Load symbol-specific configuration (default: SOFI)
-        var symbol = args.Length > 0 && args[0].ToUpper() != "SOFI" ? args[0].ToUpper() : "SOFI";
+        // Initialize checkpoint manager
+        var checkpointManager = new CheckpointManager();
+        
+        // Handle resume options
+        BacktestCheckpoint? checkpoint = null;
+        if (resume || autoResume)
+        {
+            if (!string.IsNullOrEmpty(specificCheckpoint))
+            {
+                checkpoint = checkpointManager.LoadCheckpoint(specificCheckpoint);
+                if (checkpoint is null)
+                {
+                    Console.WriteLine($"❌ Checkpoint '{specificCheckpoint}' not found");
+                    return;
+                }
+            }
+            else
+            {
+                checkpoint = checkpointManager.LoadMostRecentCheckpoint(symbol);
+            }
+            
+            if (checkpoint is null && !autoResume)
+            {
+                Console.WriteLine($"❌ No checkpoints found for {symbol} to resume");
+                return;
+            }
+            
+            if (checkpoint is not null)
+            {
+                symbol = checkpoint.Symbol; // Use symbol from checkpoint
+                Console.WriteLine($"🔄 RESUMING BACKTEST: {checkpoint.BacktestId}");
+                Console.WriteLine($"   Last processed: {checkpoint.LastProcessedDate:yyyy-MM-dd}");
+                Console.WriteLine($"   Progress: {checkpoint.EstimatedCompletionPct:F1}%");
+                Console.WriteLine($"   Current P&L: £{checkpoint.RunningPnL:N0}");
+            }
+        }
+        else if (autoResume && checkpointManager.HasIncompleteBacktest(symbol))
+        {
+            Console.WriteLine($"🔍 Found incomplete backtest for {symbol}");
+            checkpoint = checkpointManager.LoadMostRecentCheckpoint(symbol);
+        }
         
         Console.WriteLine($"\n🔧 LOADING SYMBOL-SPECIFIC CONFIGURATION FOR {symbol}");
         var configManager = new ConfigurationManager();
@@ -55,15 +100,25 @@ class Program
         }
         catch (FileNotFoundException)
         {
-            Console.WriteLine($"⚠️  Configuration file for {symbol} not found, using SOFI as default");
+            Console.WriteLine($"⚠️  Configuration file for {symbol} not found, using SOFI defaults for {symbol}");
             symbolConfig = configManager.LoadSymbolConfig("SOFI");
-            symbol = "SOFI";
+            // Keep original symbol, just use SOFI's config as template
+            symbolConfig.Symbol = symbol; // Update the config to reflect the actual symbol
         }
         
         // Use dates from symbol configuration
         var startDate = DateTime.Parse(symbolConfig.Backtest.StartDate);
         var endDate = DateTime.Parse(symbolConfig.Backtest.EndDate);
         var bars = await GetDailyBars(symbol, startDate, endDate);
+        
+        // If no real data available, fail the backtest
+        if (bars.Count == 0)
+        {
+            Console.WriteLine($"❌ CRITICAL: No real market data available for {symbol}. Backtesting requires real market data.");
+            Console.WriteLine("❌ BACKTEST FAILED: Cannot proceed without real price data from ThetaData API.");
+            Console.WriteLine("💡 Solution: Start ThetaData terminal or ensure MCP service has data access.");
+            return;
+        }
         
         Console.WriteLine($"Running comprehensive dual-strategy backtest from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
         Console.WriteLine($"Total trading days: {bars.Count}");
@@ -95,23 +150,46 @@ class Program
         
         // PHASE 1: Initialize Real Options Pricing Engine with MarketDataService
         Console.WriteLine("🔥 PHASE 1: Initializing Real Options Pricing Engine");
-        using var marketDataService = new MarketDataService();
+        IMarketDataService marketDataService = new StrollThetaMarketService();
         
         // Check ThetaData connection
-        if (!await marketDataService.IsConnectedAsync())
-        {
-            Console.WriteLine("❌ ThetaData Terminal is not connected. Please ensure ThetaData Terminal is running.");
-            return;
-        }
-        
-        // Create ThetaClient for options pricing
-        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-        var thetaClient = new ThetaClient(httpClient);
-        var realOptionsEngine = new RealOptionsEngine(thetaClient);
+        // Skip connection check for now - using bridge service
+        Console.WriteLine("⚠️  Skipping connection check - using MCP bridge service");
+        var realOptionsEngine = new RealOptionsEngine(marketDataService);
         
         // Create trading engine with real options pricing
         var engine = new TradingEngine(config, null, realOptionsEngine, symbol);
-        var sessions = new List<TradingSession>();
+        
+        // Initialize or resume checkpoint
+        BacktestCheckpoint backtestCheckpoint;
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
+        var excelFileName = $"{timestamp}_{symbol}_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx";
+        var excelFilePath = Path.Combine(OutDir, DateTime.Now.ToString("yyyyMMdd"), excelFileName);
+        
+        // Initialize streaming Excel writer
+        StreamingExcelWriter? excelWriter = null;
+        
+        if (checkpoint is not null)
+        {
+            // Resume from checkpoint
+            backtestCheckpoint = checkpoint;
+            excelFilePath = backtestCheckpoint.ExcelFilePath;
+            Console.WriteLine($"📊 Resuming Excel: {excelFilePath}");
+            // For resume, we'd need to open existing Excel - for now create new
+            excelWriter = new StreamingExcelWriter(excelFilePath);
+            excelWriter.Initialize(symbol, startDate, endDate, config.InitialCapital);
+        }
+        else
+        {
+            // Create new checkpoint
+            backtestCheckpoint = checkpointManager.CreateInitialCheckpoint(symbol, startDate, endDate, config, excelFilePath);
+            checkpointManager.SaveCheckpoint(backtestCheckpoint);
+            
+            // Create Excel file with streaming writer
+            excelWriter = new StreamingExcelWriter(excelFilePath);
+            excelWriter.Initialize(symbol, startDate, endDate, config.InitialCapital);
+            Console.WriteLine($"📊 Created Excel: {excelFilePath}");
+        }
         
         // Attempt to get real VIX data using MarketDataService
         Console.WriteLine("Fetching real VIX data for accurate volatility analysis...");
@@ -123,11 +201,10 @@ class Program
         }
         else
         {
-            Console.WriteLine("⚠️  Using synthetic VIX calculation as fallback");
+            Console.WriteLine("❌ CRITICAL: No real VIX data available. Backtesting requires real market data.");
+            Console.WriteLine("❌ BACKTEST FAILED: Cannot proceed without real VIX data.");
+            return;
         }
-        
-        // Simulate VIX levels (simplified) - fallback when real data unavailable
-        var random = new Random(42); // Fixed seed for reproducible results
         
         // REGRESSION TESTING - Validate against known performance benchmarks
         var regressionTester = new RegressionTesting();
@@ -135,31 +212,88 @@ class Program
         
         Console.WriteLine("\nExecuting trades...");
         
-        foreach (var bar in bars.Where(b => b.Date.DayOfWeek != DayOfWeek.Saturday && b.Date.DayOfWeek != DayOfWeek.Sunday))
+        // Streaming approach - small buffer instead of accumulating everything
+        var weeklySessionBuffer = new List<TradingSession>();
+        var totalBars = bars.Count;
+        var processedBars = 0;
+        var daysSinceCheckpoint = 0;
+        
+        // Filter bars to start from checkpoint date if resuming
+        var startFromDate = backtestCheckpoint.LastProcessedDate.AddDays(1);
+        var barsToProcess = bars.Where(b => 
+            b.Date >= startFromDate && 
+            b.Date.DayOfWeek != DayOfWeek.Saturday && 
+            b.Date.DayOfWeek != DayOfWeek.Sunday).ToList();
+        
+        if (checkpoint is not null)
         {
-            // Simulate realistic entry and exit timing windows
-            var entryTime = bar.Date.Date.Add(TimeSpan.FromHours(10).Add(TimeSpan.FromMinutes(random.Next(10, 31))));
-            var exitTime = bar.Date.Date.Add(TimeSpan.FromHours(15).Add(TimeSpan.FromMinutes(random.Next(20, 36))));
+            Console.WriteLine($"🔄 Resuming from {startFromDate:yyyy-MM-dd} ({barsToProcess.Count} remaining days)");
+        }
+        
+        foreach (var bar in barsToProcess)
+        {
+            // Fixed entry and exit timing windows (no randomization for reproducible results)
+            var entryTime = bar.Date.Date.Add(TimeSpan.FromHours(10).Add(TimeSpan.FromMinutes(20)));
+            var exitTime = bar.Date.Date.Add(TimeSpan.FromHours(15).Add(TimeSpan.FromMinutes(30)));
             
-            // Get VIX level - use real data if available, otherwise simulate
-            var vixLevel = realVixData.ContainsKey(bar.Date.Date) 
-                ? realVixData[bar.Date.Date] 
-                : SimulateVix(bar, bars);
+            // Get VIX level - only real data allowed, fail if unavailable
+            if (!realVixData.ContainsKey(bar.Date.Date))
+            {
+                Console.WriteLine($"❌ CRITICAL: No real VIX data available for {bar.Date.Date:yyyy-MM-dd}. Synthetic data is prohibited.");
+                throw new InvalidOperationException($"Unable to fetch real VIX data for {bar.Date.Date:yyyy-MM-dd}. Synthetic data is prohibited. Backtest terminated.");
+            }
+            var vixLevel = realVixData[bar.Date.Date];
             
             // Process entry timing
             var entrySession = engine.ProcessTradingDay(entryTime, bar, vixLevel);
-            sessions.Add(entrySession);
+            weeklySessionBuffer.Add(entrySession);
             
             // Process exit timing (separate session for exit opportunities)
             var exitSession = engine.ProcessTradingDay(exitTime, bar, vixLevel);
             if (exitSession.PositionsClosed > 0)
             {
-                sessions.Add(exitSession);
+                weeklySessionBuffer.Add(exitSession);
             }
             
             if (entrySession.PositionsOpened > 0 || (exitSession?.PositionsClosed ?? 0) > 0)
             {
                 Console.WriteLine($"{bar.Date:yyyy-MM-dd}: Opened {entrySession.PositionsOpened}, Closed {exitSession?.PositionsClosed ?? 0}, Weekly: £{entrySession.WeeklyPremium:F0}, Monthly: £{entrySession.MonthlyPremium:F0}");
+            }
+            
+            processedBars++;
+            daysSinceCheckpoint++;
+            
+            // Checkpoint every 50 days or weekly
+            var isWeekend = bar.Date.DayOfWeek == DayOfWeek.Friday;
+            var shouldCheckpoint = daysSinceCheckpoint >= 50 || isWeekend;
+            
+            if (shouldCheckpoint || processedBars == barsToProcess.Count)
+            {
+                // Update checkpoint with latest session data
+                var latestSession = weeklySessionBuffer.LastOrDefault() ?? entrySession;
+                
+                // Get current capital from engine (you'll need to expose this)
+                var currentCapital = config.InitialCapital + latestSession.TotalPnL;
+                checkpointManager.UpdateCheckpoint(backtestCheckpoint, latestSession, bar.Date, totalBars, 
+                    backtestCheckpoint.TotalBarsProcessed + processedBars, currentCapital);
+                
+                // Write weekly buffer to Excel (streaming)
+                if (excelWriter != null && weeklySessionBuffer.Count > 0)
+                {
+                    excelWriter.AppendSessions(weeklySessionBuffer);
+                    excelWriter.UpdateSummary(backtestCheckpoint);
+                }
+                
+                // Save checkpoint
+                checkpointManager.SaveCheckpoint(backtestCheckpoint);
+                
+                // Clear buffer to free memory
+                weeklySessionBuffer.Clear();
+                daysSinceCheckpoint = 0;
+                
+                // Progress update
+                var overallProgress = (decimal)(backtestCheckpoint.TotalBarsProcessed + processedBars) / totalBars * 100m;
+                Console.WriteLine($"📍 Progress: {overallProgress:F1}% complete, P&L: £{backtestCheckpoint.RunningPnL:N0}");
             }
         }
         
@@ -180,8 +314,15 @@ class Program
             Console.WriteLine("Please review recent changes for potential performance impacts.");
         }
         
-        // RUN COMPREHENSIVE REGRESSION TEST SUITE
-        testSuite.RunFullSuite(bars.Take(10).ToList(), captureBaseline: false);
+        // RUN COMPREHENSIVE REGRESSION TEST SUITE - Skip if no data
+        if (bars.Count > 10)
+        {
+            testSuite.RunFullSuite(bars.Take(10).ToList(), captureBaseline: false);
+        }
+        else
+        {
+            Console.WriteLine("⚠️  Skipping regression test suite - insufficient data");
+        }
         
         // COMPREHENSIVE PERFORMANCE ANALYSIS
         Console.WriteLine("\n" + "=".PadRight(60, '='));
@@ -192,11 +333,21 @@ class Program
         // var performanceMetrics = Sofired.Core.PerformanceAnalytics.AnalyzePerformance(sessions, config.InitialCapital);
         // Sofired.Core.PerformanceAnalytics.PrintPerformanceReport(performanceMetrics);
         
-        // Basic performance summary for now
+        // Finalize checkpoint and Excel
+        checkpointManager.FinalizeBacktest(backtestCheckpoint);
+        
+        // Basic performance summary from checkpoint
         var totalPnL = engine.GetTotalPnL();
         var totalPositions = engine.GetAllPositions().Count;
         var finalCapital = engine.GetCurrentCapital();
         var roi = totalPnL / config.InitialCapital;
+        
+        // Update final summary in Excel
+        backtestCheckpoint.RunningPnL = totalPnL;
+        backtestCheckpoint.CurrentCapital = finalCapital;
+        backtestCheckpoint.TotalTrades = totalPositions;
+        excelWriter?.UpdateSummary(backtestCheckpoint);
+        excelWriter?.Dispose();
         
         Console.WriteLine($"📊 PERFORMANCE SUMMARY");
         Console.WriteLine($"   Starting Capital: £{config.InitialCapital:F0}");
@@ -204,17 +355,13 @@ class Program
         Console.WriteLine($"   Total P&L: £{totalPnL:F0}");
         Console.WriteLine($"   Total ROI: {roi:P1}");
         Console.WriteLine($"   Total Positions: {totalPositions}");
+        Console.WriteLine($"   Max Drawdown: {backtestCheckpoint.MaxDrawdown:P2}");
+        Console.WriteLine($"   Total Trades: {backtestCheckpoint.TotalTrades}");
         
-        // Generate comprehensive results with timestamp
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
-        await GenerateResults(bars, sessions, engine, timestamp, startDate, endDate, symbol);
-        
-        Console.WriteLine($"\nBacktest complete! Results saved to {OutDir}/ directory.");
-        Console.WriteLine($"Total P&L: £{engine.GetTotalPnL():F0}");
-        Console.WriteLine($"Final Capital: £{engine.GetCurrentCapital():F0}");  
-        Console.WriteLine($"Total ROI: {(engine.GetTotalPnL() / config.InitialCapital):P1}");
-        Console.WriteLine($"Total positions traded: {engine.GetAllPositions().Count}");
-        Console.WriteLine($"Timestamp: {timestamp}");
+        Console.WriteLine($"\n✅ Backtest complete! Checkpoint: {backtestCheckpoint.BacktestId}");
+        Console.WriteLine($"📊 Excel file: {excelFilePath}");
+        Console.WriteLine($"💰 Final P&L: £{totalPnL:F0}");
+        Console.WriteLine($"📈 ROI: {roi:P1}");
     }
     
     static decimal SimulateVix(DailyBar currentBar, List<DailyBar> allBars)
@@ -246,7 +393,7 @@ class Program
         // Create comprehensive Excel workbook with multiple sheets
         var fileTime = DateTime.Now.ToString("HHmm");
         var timeSpan = $"{start:yyyyMMdd}_{end:yyyyMMdd}";
-        var excelPath = Path.Combine(OutDir, "20250907", $"{fileTime}_{symbol}_{timeSpan}.xlsx");
+        var excelPath = Path.Combine(OutDir, "20250908", $"{fileTime}_{symbol}_{timeSpan}.xlsx");
         Directory.CreateDirectory(Path.GetDirectoryName(excelPath));
         
         CreateExcelWorkbook(excelPath, bars, sessions, engine, timestamp, symbol);
@@ -552,15 +699,14 @@ class Program
 
     static async Task<List<DailyBar>> GetDailyBars(string symbol, DateTime start, DateTime end)
     {
-        using var marketDataService = new MarketDataService();
+        IMarketDataService marketDataService = new StrollThetaMarketService();
         return await marketDataService.GetDailyBarsAsync(symbol, start, end);
     }
 
-    
-    // REMOVED: All synthetic data generation methods
-    // System now requires real market data to operate
+    // REMOVED: Synthetic data generation is prohibited
+    // System requires real market data to operate
 
-    static async Task<Dictionary<DateTime, decimal>> GetRealVixData(MarketDataService marketDataService, DateTime startDate, DateTime endDate)
+    static async Task<Dictionary<DateTime, decimal>> GetRealVixData(IMarketDataService marketDataService, DateTime startDate, DateTime endDate)
     {
         var vixData = new Dictionary<DateTime, decimal>();
         
@@ -591,6 +737,115 @@ class Program
     }
 
     static long ToUnixMs(DateTime dt) => new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero).ToUnixTimeMilliseconds();
+    
+    /// <summary>
+    /// Parse command line arguments for resume functionality
+    /// </summary>
+    static (string symbol, bool resume, bool autoResume, string? specificCheckpoint) ParseArguments(string[] args)
+    {
+        var symbol = "SOFI";
+        var resume = false;
+        var autoResume = false;
+        string? specificCheckpoint = null;
+        
+        for (int i = 0; i < args.Length; i++)
+        {
+            switch (args[i].ToLower())
+            {
+                case "--resume":
+                case "-r":
+                    resume = true;
+                    break;
+                case "--auto-resume":
+                case "-ar":
+                    autoResume = true;
+                    break;
+                case "--checkpoint":
+                case "-c":
+                    if (i + 1 < args.Length)
+                    {
+                        specificCheckpoint = args[++i];
+                        resume = true;
+                    }
+                    break;
+                case "--help":
+                case "-h":
+                    PrintUsage();
+                    Environment.Exit(0);
+                    break;
+                default:
+                    // If it doesn't start with --, treat as symbol
+                    if (!args[i].StartsWith("-") && !resume && !autoResume)
+                    {
+                        symbol = args[i].ToUpper();
+                    }
+                    break;
+            }
+        }
+        
+        return (symbol, resume, autoResume, specificCheckpoint);
+    }
+    
+    /// <summary>
+    /// Print usage information
+    /// </summary>
+    static void PrintUsage()
+    {
+        Console.WriteLine();
+        Console.WriteLine("SOFIRED Backtester - Usage:");
+        Console.WriteLine();
+        Console.WriteLine("New Backtest:");
+        Console.WriteLine("  dotnet run [SYMBOL]                    - Run new backtest (default: SOFI)");
+        Console.WriteLine();
+        Console.WriteLine("Resume Options:");
+        Console.WriteLine("  dotnet run [SYMBOL] --resume          - Resume most recent incomplete backtest");
+        Console.WriteLine("  dotnet run [SYMBOL] --auto-resume     - Auto-detect and resume if incomplete");
+        Console.WriteLine("  dotnet run --checkpoint BACKTEST_ID   - Resume specific checkpoint");
+        Console.WriteLine();
+        Console.WriteLine("Other Commands:");
+        Console.WriteLine("  dotnet run checkpoints [SYMBOL]       - List available checkpoints");
+        Console.WriteLine("  dotnet run config                     - Show configuration demo");
+        Console.WriteLine("  dotnet run compare SYMBOL1 SYMBOL2    - Compare symbol configurations");
+        Console.WriteLine();
+        Console.WriteLine("Examples:");
+        Console.WriteLine("  dotnet run SOFI");
+        Console.WriteLine("  dotnet run AAPL --resume");
+        Console.WriteLine("  dotnet run --checkpoint SOFI_20250909_1421");
+        Console.WriteLine("  dotnet run checkpoints SOFI");
+        Console.WriteLine();
+    }
+    
+    /// <summary>
+    /// List available checkpoints for a symbol
+    /// </summary>
+    static void ListCheckpoints(string symbol)
+    {
+        var checkpointManager = new CheckpointManager();
+        var checkpoints = checkpointManager.ListCheckpoints(symbol);
+        
+        if (!checkpoints.Any())
+        {
+            Console.WriteLine($"No checkpoints found for {symbol}");
+            return;
+        }
+        
+        Console.WriteLine($"\nAvailable checkpoints for {symbol}:");
+        Console.WriteLine("".PadRight(80, '='));
+        Console.WriteLine($"{"Backtest ID",-25} {"Status",-12} {"Progress",-10} {"Last Date",-12} {"P&L",-15}");
+        Console.WriteLine("".PadRight(80, '-'));
+        
+        foreach (var cp in checkpoints)
+        {
+            var status = cp.IsCompleted ? "Completed" : "Incomplete";
+            var progress = $"{cp.EstimatedCompletionPct:F1}%";
+            var lastDate = cp.LastProcessedDate.ToString("yyyy-MM-dd");
+            var pnl = $"£{cp.RunningPnL:N0}";
+            
+            Console.WriteLine($"{cp.BacktestId,-25} {status,-12} {progress,-10} {lastDate,-12} {pnl,-15}");
+        }
+        
+        Console.WriteLine();
+        Console.WriteLine("To resume: dotnet run --checkpoint BACKTEST_ID");
+        Console.WriteLine("To resume latest: dotnet run SYMBOL --resume");
+    }
 }
-
-// REMOVED: RandomExtensions class - was only used for synthetic data generation

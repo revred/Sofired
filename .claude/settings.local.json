@@ -14,7 +14,17 @@
       "Bash(dotnet script:*)",
       "Bash(dotnet test:*)",
       "Bash(curl:*)",
-      "Read(//c/code/Stroll.Theta/**)"
+      "Read(//c/code/Stroll.Theta/**)",
+      "Bash(taskkill:*)",
+      "Bash(cat:*)",
+      "Bash(sed:*)",
+      "Bash(dotnet build)",
+      "Bash(dotnet run:*)",
+      "Read(//c/c/code/**)",
+      "Bash(find:*)",
+      "Bash(del \"RealOptionsEngine_Backup.cs\")",
+      "Bash(unzip:*)",
+      "mcp__ide__executeCode"
     ],
     "deny": [],
     "ask": []

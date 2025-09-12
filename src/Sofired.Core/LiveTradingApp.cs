@@ -17,10 +17,10 @@ namespace Sofired.Core
 
         public LiveTradingApp(bool paperTradingMode = true)
         {
-            // Initialize components with new MCP client
-            var httpClient = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-            var thetaClient = new Stroll.Theta.Client.ThetaClient(httpClient);
-            var realOptionsEngine = new RealOptionsEngine(thetaClient);
+            // Initialize components with MCP bridge service (temporary)
+            var thetaDataClient = new ThetaDataClient("localhost", "25510");
+            IMarketDataService marketDataService = new ThetaDataBridgeService(thetaDataClient);
+            var realOptionsEngine = new RealOptionsEngine(marketDataService);
             var advancedRiskManager = new AdvancedRiskManager();
             var enhancedPnLEngine = new EnhancedPnLEngine();
             var brokerClient = new TDAmeritradeBrokerClient("demo_api_key", "demo_account", paperTradingMode);

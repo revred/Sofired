@@ -95,6 +95,6 @@ data:
   
 # Backtesting Parameters  
 backtest:
-  start_date: "2023-08-01"
-  end_date: "2025-09-05"
+  start_date: "2024-09-01"
+  end_date: "2024-09-30"
   initial_capital: 10000

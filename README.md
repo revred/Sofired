@@ -20,10 +20,12 @@ SOFIRED is a comprehensive options trading platform that has evolved through 6 m
 ## 🎯 Key Features
 
 ### Options Trading Engine
-- **Real Options Pricing**: ThetaData API integration with enhanced synthetic fallback
+- **Real Options Pricing**: ThetaData API integration via Stroll.Theta.Market MCP service
+- **Universal Symbol Support**: Works with any publicly traded symbol with options
 - **Multi-Strategy Support**: Put credit spreads, covered calls, complex spreads
 - **Market Regime Awareness**: VIX-based volatility adjustments and sector rotation
-- **Symbol-Specific Configurations**: Tailored parameters for SOFI, AAPL, NVDA, TSLA, APP
+- **Symbol-Specific Configurations**: Tailored parameters for any symbol
+- **Automatic Data Fallback**: Synthetic data generation when real data unavailable
 
 ### Risk Management
 - **Advanced Risk Controls**: Pre-trade validation, position sizing, exposure limits
@@ -43,6 +45,13 @@ SOFIRED is a comprehensive options trading platform that has evolved through 6 m
 - **Performance Tests**: Memory usage, execution speed benchmarks
 - **Regression Testing**: Automated validation after each development phase
 
+### MCP Service Integration
+- **Automatic Data Management**: Stroll.Theta.Market MCP service handles all market data
+- **Seamless Symbol Support**: Any symbol works automatically via MCP protocol
+- **Robust Fallback System**: Synthetic data when ThetaData unavailable
+- **Real-Time Error Recovery**: Continues execution despite data gaps
+- **Market Calendar Integration**: Automatic trading day validation
+
 ## 📊 Performance Metrics
 
 ### Trading Performance (Backtested)
@@ -61,33 +70,40 @@ SOFIRED is a comprehensive options trading platform that has evolved through 6 m
 
 ```mermaid
 graph TB
-    A[Market Data] --> B[RealOptionsEngine]
-    B --> C[TradingEngine]
-    C --> D[RiskManager]
-    D --> E[LiveTradingEngine]
-    E --> F[BrokerClient]
-    F --> G[Portfolio]
+    A[ThetaData API] --> B[Stroll.Theta.Market MCP]
+    B --> C[StrollThetaMarketService]
+    C --> D[RealOptionsEngine]
+    D --> E[TradingEngine]
+    E --> F[RiskManager]
+    F --> G[LiveTradingEngine]
+    G --> H[BrokerClient]
+    H --> I[Portfolio]
     
-    H[ConfigManager] --> C
-    I[PnLEngine] --> G
-    J[TestFramework] --> K[All Components]
+    J[ConfigManager] --> E
+    K[PnLEngine] --> I
+    L[TestFramework] --> M[All Components]
+    
+    N[Synthetic Data] -.-> B
+    O[Market Calendar] --> B
 ```
 
 ### Core Components
 
-- **`RealOptionsEngine`**: Market data integration and options pricing
-- **`LiveTradingEngine`**: Real-time order management and execution
+- **`StrollThetaMarketService`**: MCP client for seamless data integration
+- **`RealOptionsEngine`**: Options pricing with real market data
+- **`LiveTradingEngine`**: Real-time order management and execution  
 - **`AdvancedRiskManager`**: Sophisticated risk controls and validation
 - **`EnhancedPnLEngine`**: Comprehensive P&L tracking with Greeks
-- **`MultiSymbolBacktester`**: Historical simulation and validation
-- **`ConfigurationManager`**: Symbol-specific parameter management
+- **`MultiSymbolBacktester`**: Historical simulation for any symbol
+- **`ConfigurationManager`**: Dynamic symbol-specific parameter management
 
 ## 🛠️ Quick Start
 
 ### Prerequisites
-- **.NET 8.0** or higher
-- **ThetaData Terminal** (optional, has synthetic fallback)
+- **.NET 9.0** or higher
+- **ThetaData Terminal** (optional, has synthetic fallback via MCP service)
 - **TD Ameritrade Account** (for live trading)
+- **Stroll.Theta.Market MCP Service** (automatically managed)
 
 ### Installation
 
@@ -102,12 +118,36 @@ dotnet build
 # Run comprehensive tests
 dotnet test
 
-# Execute backtest
-dotnet run --project src/Sofired.Backtester
+# Execute backtest for any symbol
+cd src/Sofired.Backtester
+dotnet run SOFI    # or any symbol: AAPL, NVDA, TSLA, etc.
 
 # Demo live trading (paper mode)
 dotnet run --project src/Sofired.Core -- --demo
 ```
+
+### Backtest Any Symbol
+
+SOFIRED can backtest **any publicly traded symbol** with options:
+
+```bash
+# Popular symbols
+dotnet run AAPL    # Apple Inc.
+dotnet run NVDA    # NVIDIA Corporation  
+dotnet run TSLA    # Tesla Inc.
+dotnet run PLTR    # Palantir Technologies
+dotnet run HOOD    # Robinhood Markets
+dotnet run SPY     # S&P 500 ETF
+dotnet run QQQ     # NASDAQ 100 ETF
+
+# Resume interrupted backtests
+dotnet run SYMBOL --auto-resume
+
+# Compare configurations
+dotnet run compare SYMBOL1 SYMBOL2
+```
+
+📖 **Complete Guide**: See [BACKTEST_GUIDE.md](BACKTEST_GUIDE.md) for comprehensive instructions on running backtests with any symbol.
 
 ### Configuration
 

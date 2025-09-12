@@ -377,7 +377,7 @@ public class TradingEngine
     {
         // More realistic covered call premium estimation
         var timeValue = (decimal)Math.Sqrt(dte / 365.0) * (vixLevel / 100m);
-        var moneyness = Math.Max(0, (strikePrice - stockPrice) / stockPrice);
+        var moneyness = stockPrice > 0 ? Math.Max(0, (strikePrice - stockPrice) / stockPrice) : 0;
         
         // Base premium for 12 delta calls - more realistic
         var basePremium = stockPrice * timeValue * (0.5m + moneyness) * 0.08m; // Increased multiplier

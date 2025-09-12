@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Sofired.Core;
-using Stroll.Theta.Client;
 
 namespace Sofired.Backtester
 {
@@ -35,10 +34,9 @@ namespace Sofired.Backtester
             Console.WriteLine($"Portfolio Capital: ${portfolioCapital:N0}");
             Console.WriteLine("=".PadRight(60, '='));
             
-            // Initialize ThetaData client and options engine with new MCP client
-            var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-            var thetaClient = new ThetaClient(httpClient);
-            var realOptionsEngine = new RealOptionsEngine(thetaClient);
+            // Initialize MCP-based market data service
+            IMarketDataService marketDataService = new StrollThetaMarketService();
+            var realOptionsEngine = new RealOptionsEngine(marketDataService);
             
             // Initialize multi-symbol portfolio engine
             var portfolioEngine = new MultiSymbolPortfolioEngine(portfolioCapital, realOptionsEngine);
@@ -54,7 +52,7 @@ namespace Sofired.Backtester
             var symbolPriceData = await LoadMultiSymbolPriceData(symbols, startDate, endDate);
             
             // Load VIX data
-            var vixData = await LoadVixData(thetaClient, startDate, endDate);
+            var vixData = await LoadVixData(marketDataService, startDate, endDate);
             
             // Run portfolio backtest
             var results = await portfolioEngine.RunPortfolioBacktest(startDate, endDate, symbolPriceData, vixData);
@@ -253,14 +251,13 @@ namespace Sofired.Backtester
         /// <summary>
         /// Load VIX data for volatility analysis
         /// </summary>
-        private async Task<Dictionary<DateTime, decimal>> LoadVixData(ThetaClient thetaClient, DateTime startDate, DateTime endDate)
+        private async Task<Dictionary<DateTime, decimal>> LoadVixData(IMarketDataService marketDataService, DateTime startDate, DateTime endDate)
         {
             Console.WriteLine("Loading VIX data for volatility analysis...");
             
             try
             {
-                // Use MarketDataService for VIX data fetching
-                using var marketDataService = new MarketDataService();
+                // Use IMarketDataService for VIX data fetching via ThetaData bridge
                 var vixBars = await marketDataService.GetDailyBarsAsync("VIX", startDate, endDate);
                 
                 if (vixBars.Count > 0)
@@ -314,7 +311,7 @@ namespace Sofired.Backtester
             var dateRange = $"{results.StartDate:yyyyMMdd}_{results.EndDate:yyyyMMdd}";
             var symbolsString = string.Join("-", symbols.Take(3)); // First 3 symbols
             
-            var resultsPath = System.IO.Path.Combine(_outDir, "20250907", $"{timestamp}_MULTI_{symbolsString}_{dateRange}.txt");
+            var resultsPath = System.IO.Path.Combine(_outDir, "20250908", $"{timestamp}_MULTI_{symbolsString}_{dateRange}.txt");
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(resultsPath));
             
             var report = GenerateDetailedPortfolioReport(results);
